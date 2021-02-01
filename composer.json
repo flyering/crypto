@@ -1,0 +1,24 @@
+{
+    "name": "wpfly/crypt",
+    "description": "常用加密解密库",
+    "keywords": ["rsa", "diffusion", "number", "id"],
+    "homepage": "https://www.wpfly.cn/",
+    "type": "library",
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "require-dev": {
+        "php": ">=5.4.0"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "wpfly",
+            "email": "wpfly2020@qq.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "autoload": {
+        "psr-4": {"wpfly\\": "src"}
+    }
+}
