@@ -1,5 +1,5 @@
 {
-    "name": "wpfly/crypt",
+    "name": "wpfly/crypto",
     "description": "常用加密解密库",
     "keywords": ["rsa", "diffusion", "number", "id"],
     "homepage": "https://www.wpfly.cn/",
