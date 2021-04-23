@@ -19,6 +19,8 @@ $ composer require uclbrt/api-sdk
 
 use wpfly\Crypto;
 
+<br>
+
 //数字加密、解密
 
 $crypto = new Crypto();
@@ -33,6 +35,7 @@ $r2 = $crypto->numberDecrypt($r1, $key);
 
 var_dump($num, $r1, $r2);
 
+<br>
 
 //RSA加密、解密
 
@@ -52,7 +55,9 @@ $d4 = $crypto->privDecrypt($d3);
 
 var_dump($s, $d1, $d2, $d3, $d4);
 
-更多使用示例参看sample/index.php
+<br>
+
+更多使用示例参看 sample/index.php
 
 #### 参与贡献
 
