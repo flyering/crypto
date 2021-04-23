@@ -19,31 +19,23 @@ $ composer require uclbrt/api-sdk
 
 use wpfly\Crypto;
 
-function useCase1()
-{
-    $crypto = new Crypto();
-    $num = '12';
-    $key = '639';
-    $r1 = $crypto->numberEncrypt($num, $key, 10);
-    $r2 = $crypto->numberDecrypt($r1, $key);
-    var_dump($num, $r1, $r2);
-}
+//数字加密、解密
+$crypto = new Crypto();
+$num = '12';
+$key = '639';
+$r1 = $crypto->numberEncrypt($num, $key, 10);
+$r2 = $crypto->numberDecrypt($r1, $key);
+var_dump($num, $r1, $r2);
 
-function useCase2()
-{
-    //自带公钥私钥，以便“开箱即用”去试验，但实际使用中，请一定一定重新设置密钥后再加密！
-    $crypto = new Crypto();
-
-    $s = '我真是个天才！';
-
-    $d1 = $crypto->privEncrypt($s);
-    $d2 = $crypto->pubDecrypt($d1);
-
-    $d3 = $crypto->pubEncrypt($s);
-    $d4 = $crypto->privDecrypt($d3);
-
-    var_dump($s, $d1, $d2, $d3, $d4);
-}
+//RSA加密、解密
+//自带公钥私钥，以便“开箱即用”去试验，但实际使用中，请一定一定重新设置密钥后再加密！
+$crypto = new Crypto();
+$s = '我真是个天才！';
+$d1 = $crypto->privEncrypt($s);
+$d2 = $crypto->pubDecrypt($d1);
+$d3 = $crypto->pubEncrypt($s);
+$d4 = $crypto->privDecrypt($d3);
+var_dump($s, $d1, $d2, $d3, $d4);
 
 更多使用示例参看sample/index.php
 
