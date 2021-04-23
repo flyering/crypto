@@ -3,10 +3,8 @@
 namespace wpfly;
 
 class Crypto
-{
-    private $s = [5, 6, 9, 4, 2, 7, 1, 0, 3, 8];
-    private $_s = [7, 6, 4, 8, 3, 0, 1, 5, 9, 2];
-
+{    
+    /**************** RSA加密/解密 - 开始 ****************/
     private $passPhrase = null;
     private $privateKey = <<<PK
 -----BEGIN PRIVATE KEY-----
@@ -49,7 +47,258 @@ hb8tp24wF+1sxK0wdmqhAMMRs7xE7wKRPY7Tl2ozYjZOjvHr1Gqa1tDGz8KaLqNm
 pwIDAQAB
 -----END PUBLIC KEY-----
 PK;
+    private $privKeyRes = null;
+    private $pubKeyRes = null;
 
+    /**
+     * @description: 
+     * @param {*} $passPhrase
+     * @return {*}
+     */
+    public function generateKey($passPhrase = null)
+    {
+        if(!function_exists('openssl_pkey_new'))
+        {
+            throw new \Exception('openssl functions are not available.');
+        }
+        $configargs = array(
+            'digest_alg' => 'sha256', 
+            'private_key_type' => OPENSSL_KEYTYPE_RSA,
+            'private_key_bits' => 2048,
+        );
+        $res = openssl_pkey_new($configargs);
+        openssl_pkey_export($res, $privKey, empty($passPhrase)?null:$passPhrase);
+        $details = openssl_pkey_get_details($res);
+        return [
+            'private' => $privKey,
+            'public' => $details['key'],
+        ];
+    }
+    /**
+     * @description: 
+     * @param {*} $filePath
+     * @param {*} $passPhrase
+     * @return {*}
+     */
+    public function generateKeyToFile($filePath = '.', $passPhrase = null)
+    {
+        $filePath = rtrim(rtrim($filePath, '/'), '\\');
+        if(!is_dir($filePath))
+        {
+            throw new \Exception('Parameter $filePath is not a valid folder.');
+        }
+        $key = $this->generateKey($passPhrase);
+        $filePath .= DIRECTORY_SEPARATOR;
+        $timestamp = time();
+        $privateFileName = $filePath . 'private_' . $timestamp . '.key';
+        $publicFileName = $filePath . 'public_' . $timestamp . '.key';
+        file_put_contents($privateFileName, $key['private']);
+        file_put_contents($publicFileName, $key['public']);
+        return [
+            'private' => $privateFileName,
+            'public' => $publicFileName,
+        ];
+    }
+    /**
+     * @description: 
+     * @param {*} $privateKey
+     * @param {*} $passPhrase
+     * @return {*}
+     */
+    public function extractPubKey($privateKey, $passPhrase = null)
+    {
+        if(!function_exists('openssl_pkey_get_private'))
+        {
+            throw new \Exception('openssl functions are not available.');
+        }
+        $privRes = openssl_pkey_get_private($privateKey, $passPhrase);
+        if (!is_resource($privRes)) {
+            throw new \Exception('Invalid private key.');
+        }
+        $details = openssl_pkey_get_details($privRes);
+        return $details['key'];
+    }
+    /**
+     * @description: 
+     * @param {*} $publicKey
+     * @return {*}
+     */
+    public function setPublicKey($publicKey)
+    {
+        $this->publicKey = $publicKey;
+        unset($this->pubKeyRes);
+        $this->getPublicKey();
+    }
+    /**
+     * @description: 
+     * @param {*} $privateKey
+     * @param {*} $passPhrase
+     * @return {*}
+     */
+    public function setPrivateKey($privateKey, $passPhrase = null)
+    {
+        $this->privateKey = $privateKey;
+        $this->passPhrase = $passPhrase;
+        unset($this->privKeyRes);
+        $this->getPrivateKey();
+        $this->setPublicKey($this->extractPubKey($privateKey, $passPhrase));
+    }
+    /**
+     * @description: 
+     * @param {*} $fileName
+     * @return {*}
+     */
+    public function setPublicKeyFromFile($fileName)
+    {
+        if(!is_file($fileName))
+        {
+            throw new \Exception('Public key file not found.');
+        }
+        $this->setPublicKey(file_get_contents($fileName));
+    }
+    /**
+     * @description: 
+     * @param {*} $fileName
+     * @param {*} $passPhrase
+     * @return {*}
+     */
+    public function setPrivateKeyFromFile($fileName, $passPhrase = null)
+    {        
+        if(!is_file($fileName))
+        {
+            throw new \Exception('Private key file not found.');
+        }
+        $this->setPrivateKey(file_get_contents($fileName), $passPhrase);
+    }
+    /**
+     * @description: 
+     * @param {*}
+     * @return {*}
+     */
+    private function getPublicKey()
+    {
+        if(empty($this->pubKeyRes))
+        {
+            if(!function_exists('openssl_pkey_get_public'))
+            {
+                throw new \Exception('openssl functions are not available.');
+            }
+            $this->pubKeyRes = openssl_pkey_get_public($this->publicKey);
+            if (!is_resource($this->pubKeyRes)) {
+                throw new \Exception('Invalid public key.');
+            }
+        }
+        return $this->pubKeyRes;
+    }
+    /**
+     * @description: 
+     * @param {*}
+     * @return {*}
+     */
+    private function getPrivateKey()
+    {
+        if(empty($this->privKeyRes))
+        {
+            if(!function_exists('openssl_pkey_get_private'))
+            {
+                throw new \Exception('openssl functions are not available.');
+            }
+            $this->privKeyRes = openssl_pkey_get_private($this->privateKey, $this->passPhrase);
+            if (!is_resource($this->privKeyRes)) {
+                throw new \Exception('Invalid private key.');
+            }
+        }
+        return $this->privKeyRes;
+    }
+    /**
+     * @description: 
+     * @param {*} $data
+     * @return {*}
+     */
+    public function privEncrypt($data)
+    {
+        if (!is_string($data)) {
+            throw new \Exception('Parameter $data must be a string.');
+        }
+        if(!function_exists('openssl_private_encrypt'))
+        {
+            throw new \Exception('openssl functions are not available.');
+        }
+        $result = openssl_private_encrypt($data, $encrypted, $this->getPrivateKey());
+        if (!$result) {
+            throw new \Exception('Encryption failed.');
+        }
+        return base64_encode($encrypted);
+    }
+    /**
+     * @description: 
+     * @param {*} $data
+     * @return {*}
+     */
+    public function pubDecrypt($data)
+    {
+        if (!is_string($data)) {
+            throw new \Exception('Parameter $data must be a string.');
+        }
+        if(!function_exists('openssl_public_decrypt'))
+        {
+            throw new \Exception('openssl functions are not available.');
+        }
+        $result = openssl_public_decrypt(base64_decode($data), $​decrypted, $this->getPublicKey());
+        if (!$result) {
+            throw new \Exception('Decryption failed.');
+        }
+        return $​decrypted;
+    }
+    /**
+     * @description: 
+     * @param {*} $data
+     * @return {*}
+     */
+    public function pubEncrypt($data)
+    {
+        if (!is_string($data)) {
+            throw new \Exception('Parameter $data must be a string.');
+        }
+        if(!function_exists('openssl_public_encrypt'))
+        {
+            throw new \Exception('openssl functions are not available.');
+        }
+        $result = openssl_public_encrypt($data, $encrypted, $this->getPublicKey());
+        if (!$result) {
+            throw new \Exception('Encryption failed.');
+        }
+        return base64_encode($encrypted);
+    }
+    /**
+     * @description: 
+     * @param {*} $data
+     * @return {*}
+     */
+    public function privDecrypt($data)
+    {
+        if (!is_string($data)) {
+            throw new \Exception('Parameter $data must be a string.');
+        }
+        if(!function_exists('openssl_private_decrypt'))
+        {
+            throw new \Exception('openssl functions are not available.');
+        }
+        $result = openssl_private_decrypt(base64_decode($data), $​decrypted, $this->getPrivateKey());
+        if (!$result) {
+            throw new \Exception('Decryption failed.');
+        }
+        return $​decrypted;
+    }
+    /**************** RSA加密/解密 - 结束 ****************/
+
+    /**************** 数字加密/解密 - 开始 ****************/
+    /**
+     * @description: 
+     * @param {*} $m
+     * @param {*} $p
+     * @return {*}
+     */
     private function numberDiffusion($m, $p)
     {
         $mLen = count($m);
@@ -60,11 +309,17 @@ PK;
             $mNext = ($i + 1) % $mLen;
             $mPrev = ($i - 1 + $mLen) % $mLen;
             $pCurrent = $i % $pLen;
-            $m[$mNext] = $this->s[($m[$mCurrent] + $m[$mNext] + $p[$pCurrent]) % 10];
-            $m[$mCurrent] = $this->s[($m[$mPrev] + $m[$mCurrent] + $p[$pCurrent]) % 10];
+            $m[$mNext] = ($m[$mCurrent] + $m[$mNext] + $p[$pCurrent]) % 10;
+            $m[$mCurrent] = ($m[$mPrev] + $m[$mCurrent] + $p[$pCurrent]) % 10;
         }
         return $m;
     }
+    /**
+     * @description: 
+     * @param {*} $d
+     * @param {*} $p
+     * @return {*}
+     */
     private function numberRecovery($d, $p)
     {
         $dLen = count($d);
@@ -75,36 +330,19 @@ PK;
             $dNext = ($i + 1) % $dLen;
             $dPrev = ($i - 1 + $dLen) % $dLen;
             $pCurrent = $i % $pLen;
-            $d[$dCurrent] = ($this->_s[$d[$dCurrent]] - $d[$dPrev] - $p[$pCurrent] + 20) % 10;
-            $d[$dNext] = ($this->_s[$d[$dNext]] - $d[$dCurrent] - $p[$pCurrent] + 20) % 10;
+            $d[$dCurrent] = ($d[$dCurrent] - $d[$dPrev] - $p[$pCurrent] + 20) % 10;
+            $d[$dNext] = ($d[$dNext] - $d[$dCurrent] - $p[$pCurrent] + 20) % 10;
         }
         return $d;
     }
-    function generateMap()
-    {
-        $s = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-        shuffle($s);
-        $_s = array_flip($s);
-        ksort($_s);
-        return "\$s = [" . implode(',', $s) . "]; \$_s = [" . implode(',', $_s) . "];";
-    }
-    function setMap($map)
-    {
-        if(!is_array($map))
-        {
-            throw new \Exception('Parameter $num must be an array.');
-        }
-        $temp = $map;
-        sort($temp);
-        if($temp != [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-        {
-            throw new \Exception('Parameter $map must be a permutation of 0 to 9.');
-        }
-        $this->s = $map;
-        $this->_s = array_flip($map);
-        ksort($this->_s);
-    }
-    function numberEncrypt($num, $key, $fill = 0)
+    /**
+     * @description: 
+     * @param {*} $num
+     * @param {*} $key
+     * @param {*} $fill
+     * @return {*}
+     */
+    public function numberEncrypt($num, $key, $fill = 0)
     {
         if (!is_string($num)) {
             throw new \Exception('Parameter $num must be a string.');
@@ -126,7 +364,13 @@ PK;
         }
         return join("", $this->numberDiffusion(str_split($num), str_split($key)));
     }
-    function numberDecrypt($num, $key)
+    /**
+     * @description: 
+     * @param {*} $num
+     * @param {*} $key
+     * @return {*}
+     */
+    public function numberDecrypt($num, $key)
     {
         if (!is_string($num)) {
             throw new \Exception('Parameter $num must be a string.');
@@ -142,106 +386,5 @@ PK;
         }
         return join("", $this->numberRecovery(str_split($num), str_split($key)));
     }
-    function generateKey()
-    {
-        if(!function_exists('openssl_pkey_new'))
-        {
-            throw new \Exception('openssl functions are not available.');
-        }
-        $configargs = array(
-            'digest_alg' => 'sha256', 
-            'private_key_type' => OPENSSL_KEYTYPE_RSA,
-            'private_key_bits' => 2048,
-        );
-        $res = openssl_pkey_new($configargs);
-        openssl_pkey_export($res, $privKey, null);
-        $details = openssl_pkey_get_details($res);
-        return [
-            'private' => $privKey,
-            'public' => $details['key'],
-        ];
-    }
-    function extractPubKey($privateKey, $passPhrase=null)
-    {
-        if(!function_exists('openssl_pkey_get_private'))
-        {
-            throw new \Exception('openssl functions are not available.');
-        }
-        $privRes = openssl_pkey_get_private($privateKey, $passPhrase);
-        if (!is_resource($privRes)) {
-            throw new \Exception('Invalid private key.');
-        }
-        $details = openssl_pkey_get_details($privRes);
-        return $details['key'];
-    }
-    function setKey($privateKey, $passPhrase=null)
-    {
-        $this->publicKey = $this->extractPubKey($privateKey, $passPhrase);
-        $this->privateKey = $privateKey;
-        $this->passPhrase = $passPhrase;
-    }
-    function rsaPrivEncrypt($data)
-    {
-        if(!function_exists('openssl_private_encrypt'))
-        {
-            throw new \Exception('openssl functions are not available.');
-        }
-        $pk = openssl_pkey_get_private($this->privateKey, $this->passPhrase);
-        if (!is_resource($pk)) {
-            throw new \Exception('Invalid private key.');
-        }
-        $result = openssl_private_encrypt($data, $encrypted, $pk);
-        if (!$result) {
-            throw new \Exception('Encryption failed.');
-        }
-        return base64_encode($encrypted);
-    }
-    function rsaPubDecrypt($data)
-    {
-        if(!function_exists('openssl_public_decrypt'))
-        {
-            throw new \Exception('openssl functions are not available.');
-        }
-        $pk = openssl_pkey_get_public($this->publicKey);
-        if (!is_resource($pk)) {
-            throw new \Exception('Invalid public key.');
-        }
-        $result = openssl_public_decrypt(base64_decode($data), $​decrypted, $pk);
-        if (!$result) {
-            throw new \Exception('Decryption failed.');
-        }
-        return $​decrypted;
-    }
-    function rsaPubEncrypt($data)
-    {
-        if(!function_exists('openssl_public_encrypt'))
-        {
-            throw new \Exception('openssl functions are not available.');
-        }
-        $pk = openssl_pkey_get_public($this->publicKey);
-        if (!is_resource($pk)) {
-            throw new \Exception('Invalid public key.');
-        }
-        $result = openssl_public_encrypt($data, $encrypted, $pk);
-        if (!$result) {
-            throw new \Exception('Encryption failed.');
-        }
-        return base64_encode($encrypted);
-    }
-    function rsaPrivDecrypt($data)
-    {
-        if(!function_exists('openssl_private_decrypt'))
-        {
-            throw new \Exception('openssl functions are not available.');
-        }
-        $pk = openssl_pkey_get_private($this->privateKey, $this->passPhrase);
-        if (!is_resource($pk)) {
-            throw new \Exception('Invalid private key.');
-        }
-        $result = openssl_private_decrypt(base64_decode($data), $​decrypted, $pk);
-        if (!$result) {
-            throw new \Exception('Decryption failed.');
-        }
-        return $​decrypted;
-    }
+    /**************** 数字加密/解密 - 结束 ****************/
 }

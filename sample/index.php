@@ -3,56 +3,198 @@ require '../src/Crypto.php';
 
 use wpfly\Crypto;
 
-$crypto = new Crypto();
-var_dump($crypto->generateMap());
-$crypto->setMap([2,9,8,5,3,6,4,1,7,0]);
+function useCase1()
+{
+    $crypto = new Crypto();
+    $num = '12';
+    $key = '639';
+    $r1 = $crypto->numberEncrypt($num, $key, 10);
+    $r2 = $crypto->numberDecrypt($r1, $key);
+    var_dump($num, $r1, $r2);
+}
 
-$num = '12';
-$key = '639';
-$r1 = $crypto->numberEncrypt($num, $key, 10);
-$r2 = $crypto->numberDecrypt($r1, $key);
-var_dump($r1, $r2);
+function useCase2()
+{
+    //自带公钥私钥，以便“开箱即用”去试验，但实际使用中，请一定一定重新设置密钥后再加密！
+    $crypto = new Crypto();
 
-$k1 = $crypto->generateKey();
-var_dump($k1);
+    $s = '我真是个天才！';
 
-$pk = <<<PK
------BEGIN PRIVATE KEY-----
-MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDD+rp43CV0EnEL
-gkI8GHsRkmgUTY4igkQ488Gyd7yngk91zDfcx+d+YlV5OVMjUImb8hLU/XGqyatI
-pW28ZfIBeyO7ZakXCCWkhOWljr0EqT4L9SDJF6IJI/+pPqjW3VSQnePIkaR5q08o
-SVaoja5usd/xOdVbTDB4yomf9ufzip4fEj4rCD3VKKdePFJBbHVXhI3W7NqbFtxE
-iDfiSIYB8bF6SgIzzC90Ia4ze/8iOdrKDpVm5/kNPgKf8gbxf26CEgrLrl6KtNXr
-wBLWQ0i5FMgljPRSqjrSFAjPH+Zg1HRCDWmekXrcm1Ihx022nQqo06zdvwnlILnn
-m22WntpBAgMBAAECggEAYxwOZ4a1rjCRWMekJW4f9u/6kKH0CoGkbMThJRcmofPl
-qWYArjeuW5zxKuARql9VaDcQzQPrEvrwE0oN5+QKcjNLC79KtuoY102aMZKxBoVs
-anGqBehcupCo/3c/vYGq/YPLqSf2bM10t6P3HkCggTyVSxH7UzOBo+SRmwMrpF6H
-ykJeTP0fUF2ALu3IoOX9zE14qQETwbWfTrDkb8npi3zkG4vzrF+vdHf3ByCIQwTb
-Bx4+P54T+42xT2Yn5bVmjoRchxWywev9D79wG+QjRTHu1PAkPtgxlR2Gd7apo4oE
-cILOtGRFA0BBzN9tMrODhWSHTyE5Jo7XiLYza3alAQKBgQDtwKd8nGn0grKEbuWU
-5wSegWKRlBKY2QfRyqp+bMM93xsfOWbKV25Rx6PeLUfa6mLur3bThwzgtms3tJTr
-L20ueVNcgWp6UzVRFQEZPNv3PlQ4/sO434Lp/OokybM2CiKQqt55tIZlOMtZhBzo
-uwCSDjxEkmCOHBKWTGmWkhhQkQKBgQDTBVF4g+Tb9eG8mkf/bXbDt48E5pcVCYD4
-qW36lV1KoLzaaJ6yK2OjG8L8YBWyoYMZlWdqw1f5SItGtoEJ5qh3aqf+qec/8YcE
-5hkAI5X+aXLYxVy1Bv9NNSprTpoKw2AtBvrp5UcZAuTfR6H9dqKgIPuVZ+PceDzs
-W/GsvQ/GsQKBgQDmwS3ODCHqZ0/MqbW6J96b2QhKM2U5ZKvqOsHvorB8xKYWUCgs
-C1/Pj+zEHz62gvcyoqq580HUeDjoACTpf0aA7NCz4AfwYgJFiBVg4Wi9N4mXJ+3e
-6VCuugKnYfzGXl/d+XmktkoaxFzZrRhB6f5Lw/VKuKduRmDj75YrxfBDgQKBgQCX
-kNpTlWhsFM9uh+HutND5An7XJkid85WPBSLZOS8oywraVQqnLkMChI4od1seUqO3
-XHhLVsN5aYGf6LYGRoX6P8EqSR6v7urrudl7IBQ8B8FVsWxFGiGFcwpkyLAbyvjp
-XnoaRXQrosiBFxJi2zMzkH0jcttXH4Wivud3CtSqAQKBgQDn2A/j85+ng8HJFxBC
-XIxH+sJPszxSchWKEOJwZqrSjYMZXdiJK5Wg4BAlTAk+OmWYFEQeWp7t9mUvU0rY
-RTIASXyKiSJf/volnJb2r4/Y2PSQjfyadVdMiwhbBhq0QHV05uD3vwhpeDcZERa2
-vWezTU1t4kXR8Ln3AU7tVrcM9g==
------END PRIVATE KEY-----
+    $d1 = $crypto->privEncrypt($s);
+    $d2 = $crypto->pubDecrypt($d1);
+
+    $d3 = $crypto->pubEncrypt($s);
+    $d4 = $crypto->privDecrypt($d3);
+
+    var_dump($s, $d1, $d2, $d3, $d4);
+}
+
+function useCase3()
+{
+    $crypto = new Crypto();
+    var_dump($crypto->generateKey('password1'));
+}
+
+function useCase4()
+{
+    $crypto = new Crypto();
+    $pk = <<<PK
+-----BEGIN ENCRYPTED PRIVATE KEY-----
+MIIFDjBABgkqhkiG9w0BBQ0wMzAbBgkqhkiG9w0BBQwwDgQI2LeuZlBMt3kCAggA
+MBQGCCqGSIb3DQMHBAjhGc/91TbUmQSCBMjtxI+u5f8VeW18STYf8aS4eKryGFdd
+JYovWKvjiZLbqKRthFck9FB8oLhDNuX/9HGmbzDFe0OFPE7tDqR+fidguVIEt5Yk
+/LO8czyiBCj2DyMkDJ4oBfdmbOIJuryKy42+RkJ24PWyEc/lJVjaoLgoZbhCMd6f
+ScnZJXrQCRedyL8AUfQpFbM4hAEKDe35Bye2VpzMaEha2Sy20Rogf0ctHP6zh+XT
+GM8II7pruEOSosdhXoyefHxjBPn4MlDs30NcTCB0ELb8P/leeJXPo1fndpJivhpt
+SZzCm0iNOWc/4Ytuc4dttccfSrqwuF6l3cmO/H3g286CVfUtwObJQCmOl2DhOKGj
+1dgKxZ36auwViQFl6dsb61ory9w9fXb2T/k0uaH0wADkkol6I9qw1pH0f3NsTCSB
+Z0cisy9hhOCbZNtdzwkhI8FWU8M1TSChAtAOhIgovNqaC5hCY8Nw2vFB8asb3Z4K
+3cgb21zkgjRDz8mNIa4Ol3TjGs9zSMLflt7ofejCsiCY8cYFGr7TOpze3W+v12SH
+RmdDtVdCvOGIaCBq05XwCUiKLi5ESBS+1VNMmbcAS7XNphsqghNL1vnkSrQbEQzA
+UHm5fEUIJk5jQS/Z5T7P7s4ahfMLzFhAldMxmUAHjf4W/UeTCacuamaVgafl6/ow
+Jrh/LnBsw67DBV4gRbfLrKNPtvnWtnbKbp210O7mTMuEbWol7A/iUEZxm02mb+kM
+8tJ+vYn8S8W5yvC3XBCd23r2UG3yhvCz2pOXwQt/iR0wsWKmiLsGayEo+jzrnrip
+QNTmxMzUL2eZVOVekz5RH7qFTkFeGPWp/Vb+F6J2HQG46cG0vaWfTFeHpAG5DGus
+nqE/gkq8vjCYa6NUCsponWGyW4BHWbh5yU9KVRknmJq4dkevCJmn/lZnCTkMAkCG
+iTDcXGscax8qUsw5DN61DDRQQMtwfATyv/0tMaoBRxVo3netSHshRtultPBzmD6m
+4a/F5JK0bKGY798WVWNHjOIt0UHptb2DM2cN1Nout7wwZbcVqsJsUosbCSFOKF5U
+hcCo3gF2kAxVBHnFstt561hMC1nlVy9Ih36CUpFRV3aLfBMHoVGZ5mwtYkllCTT2
+oiFFUmliNc7lCf7eAMinLE/UI2rTgfOAMeuwt4ep8RnGpibb2XNReYHNDOxh7KKr
+m6/0MIAKT38iK57wudcygjhE2ggJFHQaaxi0FDJiNIR9rwQDPCT8nR16XjVnEuc7
+7PyokZVxk10EBjKmHnbZJCWEa5gZuTUnPtteLJgvOmDjOGYli0owvyw96XpiTdAL
+1jATPMb1w4XcCmaTbm8GRhNSlBeQ1z/yVRSuiwb2wf9MsZM2kAy5Jq5nuAuaZLLi
+mfVW64YAmTORPoolWWA9gSkVKOfwCUgeXBi6qm0tjQc017zJ9KwGnKVztdEWszdQ
+Z4jlYRMrucM1l1j/Vo+iBlX6ojT/gmWUyiBygwd5Pem0t22z3L9j99l06jSBkr6K
+dKVDZbbp+OgNMuHU4ymMoJaYBQVut4cueArURkF6cSu7VKEmHQ3MdZPG6/2/ywlQ
+BmiiKCxk95zupRIxA853p2oX3a87pbVatr/TidyFXAz+JgRoPCPnPsSFCm624JPy
+dAQ=
+-----END ENCRYPTED PRIVATE KEY-----
 PK;
-$k2 = $crypto->extractPubKey($pk, '');
-var_dump($k2);
+    var_dump($crypto->extractPubKey($pk, 'password2'));
+}
 
-$s = 'sfsgdfhfhfd';
-$d1 = $crypto->rsaPrivEncrypt($s);
-$d2 = $crypto->rsaPubDecrypt($d1);
-$d3 = $crypto->rsaPubEncrypt($s);
-$d4 = $crypto->rsaPrivDecrypt($d3);
-var_dump($d1, $d2, $d3, $d4);
+function useCase5()
+{
+    $crypto = new Crypto();
+
+    //由于私钥中包含公钥，所以设置私钥后，私钥加密(签名)/公钥解密/公钥加密(保密传输)/私钥解密均可调用。
+    $crypto->setPrivateKey('-----BEGIN ENCRYPTED PRIVATE KEY-----
+MIIFDjBABgkqhkiG9w0BBQ0wMzAbBgkqhkiG9w0BBQwwDgQITMP90bqVGf8CAggA
+MBQGCCqGSIb3DQMHBAjXFimOAT0HIwSCBMgzQOTaGJTjSsIEcMKQ5h3nsSSBBQ7m
+ilvF55Hcye1Kk/e+20CaCT7fD3jZmWcPL1msOXvmhI+aMJ5u/oSJcpJF7+DLZRGM
+GLO+bzFBMnaJw+S03FYFY2s6P5fpmodob1lAUWuxexuNPGMViW8yh4FjUwTCyZS1
+IgYTdxgZYj6Z4dpKvpejoHx47qy0KJgszzglHDEOZOc7QUB4NUZguEbji6vBdXVc
+Bp+mlaCKhfI+Gr+sQqs6Akw+AfM2Mtd84Z5j+oRNuczgo5CoTjhfFT25rVx61IB6
+U3Tf18QBQqzPwHRajhsZll4BRkVW1XeyXejDoXCucGeyoHjnpGhPLGY3w+dPxL12
+6cqZb83QrATtzewfO4FzqGGdsLQojkGPrCEZ8pwX8PdxTZW2PXq0mvwT32o8SXom
+vrAC2lQYJH2qdagWHvmkrxmTOy50xs1BI9nhHoM5vyIXmGjCrLMB5p5Xi3n/Mv6l
+WCw2leQxNla+ADt6Lphc1cJNqOeCzwcXl3/fnXOVQkJHRJvbk1jNom5mV7NcSwWz
+70yBBLuSK+RLprpBZnwkocd3kFCoLbo8qsasZJAt0D1JLi6jfsmNGBLxInbg2Fr4
+KK/74wG8SoepnrLAuILOy9/yL2DESlS5pxDprFDU4IqwwFLRY7mAY176MoyTVTK6
+p8wmtIEjt3urr2WpXUe1Q5hv1GxBVoPmvRUCjWfPx4bdvDhLSemUq1jsbsDufkNr
+OUeKB5LjQIW/buioygmY+jXwOImNPGIE/kLp3yMXKgzprn9uA3cBG65RQYIL6n81
+BHPhC3UnCNGvtJpARcqEw21SP4ry/hVwvYaYgRpnnrCx43OCykUe99KZiAdpEJqx
+5syUNguchx6sbB3o/lnD2uJbcxB04UMlTu85mALe6aB3NbSawEWoogwn8SL9ONyt
+4mvfQH1+2WusVtjAf5lh6HSWix/HESHzRDRz4K71fp9vXnO1p7dMnSjMJ+UauaWi
+9DH6Y3YggrpnpGlf25y9lId1uoGy1NFg3jcKPeXD4tL5OAqL3+14SNkmORfJMhKM
+JKZzof+dBEyw91TPw+gk/RWBhC+d9KyHBwsgdMTfUXXFuhfzHyhKHoJ4gsqdq6Xx
+gaxBszx/C/dvEgwBrvVBGRJdj8xK+AuNzZp6hFcCI27CCAGwonYE/eeQUQ/d8jd6
+J87lQ1W0NoVUNoiuLiWgsl3AcRqKQGKNh0PQFHzw11uADiOCBSDmYj49HT0xrh2w
+q5hq4qe3yFuXcp2Ll6Kvx/ISNr9WiSfVMqKdCH1BBE1m5oAum/ofdXFNXYujGage
+Eyc5RpIp1MISYVn9y1Cpq/xuocuvLfEaGptmeU8/A3ZiNvTUl3OhZ4LEiyp/flMh
+rqJWzXPMeeZ3P/k3d44xYhajTD6CglxFX6XobJJ4y4gkIVF7pAb0dql6QfYaxyZa
+bA0hN44Ua3DoxTaCZDaCZlp/PsnmXyrcY+JHZRPpY5kqDdoAlvCnHa9yMBNaeJKS
+EzhXlXxVFLIom3pQrB/8EvntPH6bA/V0H9u6xXxdSqRP4SwIFgY25IP+/IPDWA92
+WvVFKYquFo39BfIE2A0ZlEIbHMOlKBjJWE/YV4N9Ibqqy67ySQRSZgMEMrKnycBk
+XM8=
+-----END ENCRYPTED PRIVATE KEY-----', 'password3');
+
+    $s = '我真是个天才！';
+
+    $d1 = $crypto->privEncrypt($s);
+    $d2 = $crypto->pubDecrypt($d1);
+
+    $d3 = $crypto->pubEncrypt($s);
+    $d4 = $crypto->privDecrypt($d3);
+
+    var_dump($s, $d1, $d2, $d3, $d4);
+}
+
+
+function useCase6()
+{
+    $crypto = new Crypto();
+
+    //只设置公钥，所以只能调用公钥加密/解密，如果此时调用私钥加密/解密，会使用自带私钥，此时加密/解密不对应，。
+    $crypto->setPublicKey('-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAy/w5nN+wVEccKKZo+IlB
+uwzX23fYZcKGTSl9yToq1WlaQmR0Fmvgk2bpav2oJ7AWhnG94l2ZPUlASGk+8Q7l
+UvezRXJ+zCENPjLFxV+45wsOPb08EA7X4/M+I0pnMqR47386D0gbHX8O27YfwY50
+RaiPZqT/1zm1ZKfOmer2ZyrvgEGo4Q/8Fua4m77ymQ6R7CgHLtnudZNpBRCP89Zs
+FG/WUGCXDUOk8DXPgtH3TGvsaWcstbkJZT3B7h1JBMm9+NjrDiXKXai0DsQ33I9v
+EqYHvFipXVrmgalDs7YCyoEcgMw3i+o0JKzzapRAAfonXIWx37jQUjKpwpL8vJwd
+cwIDAQAB
+-----END PUBLIC KEY-----');
+
+    $e = 'C2Jzf7L9iHUVb2T/P2Jm9lstF4R40W1QsV2I37bch5b89iDtBx/RxW6IssLovOCB5/B9ddUL7LAH0VPr6OF3a8sR2FEnr7CHzshFvQ0O7xgaekGZ/ZeMPrc0aFup/SWSkh9StUx9N32thgbie7N2Ml1zqZ/z7rpl0tXEXCswqneNowUnBsbarHTNBd+/4c7HhgiTm/oRcz7D3aFN59UVPLBbEQ9nAlBp9ARsmT4/0Se5me4kwEJTswtvRkcjx02SGyjjkcrX3ZUEazCtx+183YkgEIniMPnpsx2HxTnJdk8tbOz0YBPrLX3W1l1Il+sXP+I1lPtiCIDyXqpi8g1BjA==';
+    $s = '我真是个天才！';
+
+    $d1 = $crypto->pubDecrypt($e);
+    $d2 = $crypto->pubEncrypt($s);
+
+    var_dump($e, $s, $d1, $d2);
+}
+
+
+function useCase7()
+{
+    $crypto = new Crypto();
+
+    $fileName = $crypto->generateKeyToFile('./', 'password4');
+    $crypto->setPublicKeyFromFile($fileName['public']);
+    $crypto->setPrivateKeyFromFile($fileName['private'], 'password4');
+
+    $s = '我真是个天才！';
+
+    $d1 = $crypto->privEncrypt($s);
+    $d2 = $crypto->pubDecrypt($d1);
+
+    $d3 = $crypto->pubEncrypt($s);
+    $d4 = $crypto->privDecrypt($d3);
+
+    var_dump($s, $d1, $d2, $d3, $d4);
+}
+
+ob_start();
+try{
+    echo "用例1：\r\n";
+    useCase1();
+    echo "\r\n";
+    echo "用例2：\r\n";
+    useCase2();
+    echo "\r\n";
+    echo "用例3：\r\n";
+    useCase3();
+    echo "\r\n";
+    echo "用例4：\r\n";
+    useCase4();
+    echo "\r\n";
+    echo "用例5：\r\n";
+    useCase5();
+    echo "\r\n";
+    echo "用例6：\r\n";
+    useCase6();
+    echo "\r\n";
+    echo "用例7：\r\n";
+    useCase7();
+    echo "\r\n";
+}catch(Exception $e)
+{
+    echo $e->getMessage();
+}
+$out = ob_get_clean();
+$out = str_replace("\r\n", "<br/>", $out);
+$out = str_replace("\n", "<br/>", $out);
+echo $out;
+
 
