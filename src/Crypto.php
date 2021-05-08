@@ -387,4 +387,31 @@ PK;
         return join("", $this->numberRecovery(str_split($num), str_split($key)));
     }
     /**************** 数字加密/解密 - 结束 ****************/
+
+    /**************** AES加密/解密 - 结束 ****************/
+    public function aesEncrypt($plaintext, $key)
+    {
+        $cipher = "aes-128-gcm";
+        $ivlen = openssl_cipher_iv_length($cipher);
+        $iv = openssl_random_pseudo_bytes($ivlen);
+        $ciphertext_raw = openssl_encrypt($plaintext, $cipher, $key, OPENSSL_RAW_DATA, $iv, $tag);
+        return base64_encode($iv.$tag.$ciphertext_raw);
+    }
+
+    public function aesDecrypt($ciphertext, $key)
+    {
+        $cipher = "aes-128-gcm";
+        $ivlen = openssl_cipher_iv_length($cipher);
+        $taglen = 16;        
+        $c = base64_decode($ciphertext);
+        if(strlen($c) < $ivlen + $taglen)
+        {
+            throw new \Exception('Ciphertext is not long enough.');
+        }
+        $iv = substr($c, 0, $ivlen);
+        $tag = substr($c, $ivlen, $taglen);
+        $ciphertext_raw = substr($c, $ivlen + $taglen);
+        return openssl_decrypt($ciphertext_raw, $cipher, $key, OPENSSL_RAW_DATA, $iv, $tag);
+    }
+    /**************** AES加密/解密 - 结束 ****************/
 }

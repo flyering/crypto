@@ -165,6 +165,18 @@ function useCase7()
     var_dump($s, $d1, $d2, $d3, $d4);
 }
 
+function useCase8()
+{
+    $crypto = new Crypto();
+
+    $s = '我真是个天才！';
+
+    $d1 = $crypto->aesEncrypt($s, 'password5');
+    $d2 = $crypto->aesDecrypt($d1, 'password5');
+
+    var_dump($s, $d1, $d2);
+}
+
 ob_start();
 try{
     echo "用例1：\r\n";
@@ -187,6 +199,9 @@ try{
     echo "\r\n";
     echo "用例7：\r\n";
     useCase7();
+    echo "\r\n";
+    echo "用例8：\r\n";
+    useCase8();
     echo "\r\n";
 }catch(Exception $e)
 {
