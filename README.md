@@ -1,8 +1,8 @@
 <!--
  * @Author: your name
  * @Date: 2021-04-23 22:24:39
- * @LastEditTime: 2021-04-23 22:24:40
- * @LastEditors: your name
+ * @LastEditTime: 2021-05-09 01:22:51
+ * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /crypto/README.md
 -->
@@ -37,6 +37,16 @@ var_dump($num, $r1, $r2);
 
 <br>
 
+//输出结果：
+
+//string(2) "12"
+
+//string(10) "1759624947"
+
+//string(10) "0000000012"
+
+<br>
+
 //RSA加密、解密
 
 //自带公钥私钥，以便“开箱即用”去试验，但实际使用中，请一定一定重新设置密钥后再加密！
@@ -54,6 +64,20 @@ $d3 = $crypto->pubEncrypt($s);
 $d4 = $crypto->privDecrypt($d3);
 
 var_dump($s, $d1, $d2, $d3, $d4);
+
+<br>
+
+//AES加密、解密（AES-128-GCM模式）
+
+$crypto = new Crypto();
+
+$s = '我真是个天才！';
+
+$d1 = $crypto->aesEncrypt($s, 'password5');
+
+$d2 = $crypto->aesDecrypt($d1, 'password5');
+
+var_dump($s, $d1, $d2);
 
 <br>
 

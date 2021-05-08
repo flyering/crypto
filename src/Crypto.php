@@ -389,6 +389,12 @@ PK;
     /**************** 数字加密/解密 - 结束 ****************/
 
     /**************** AES加密/解密 - 结束 ****************/
+    /**
+     * @description: 
+     * @param {*} $plaintext
+     * @param {*} $key
+     * @return {*}
+     */
     public function aesEncrypt($plaintext, $key)
     {
         $cipher = "aes-128-gcm";
@@ -397,7 +403,12 @@ PK;
         $ciphertext_raw = openssl_encrypt($plaintext, $cipher, $key, OPENSSL_RAW_DATA, $iv, $tag);
         return base64_encode($iv.$tag.$ciphertext_raw);
     }
-
+    /**
+     * @description: 
+     * @param {*} $ciphertext
+     * @param {*} $key
+     * @return {*}
+     */
     public function aesDecrypt($ciphertext, $key)
     {
         $cipher = "aes-128-gcm";
