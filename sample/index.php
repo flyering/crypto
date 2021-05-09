@@ -210,6 +210,7 @@ try{
 $out = ob_get_clean();
 $out = str_replace("\r\n", "<br/>", $out);
 $out = str_replace("\n", "<br/>", $out);
+header("Content-Type: text/html;charset=utf-8");
 echo $out;
 
 
