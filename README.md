@@ -1,19 +1,12 @@
-<!--
- * @Author: your name
- * @Date: 2021-04-23 22:24:39
- * @LastEditTime: 2021-05-09 19:37:08
- * @LastEditors: Please set LastEditors
- * @Description: In User Settings Edit
- * @FilePath: /crypto/README.md
--->
 # crypt
 
 #### 介绍
+
 常用加密/解密库，目前包括RSA加密/解密、整数加密/解密、AES加密/解密。
 
 #### 安装方法
 
-$ composer require uclbrt/api-sdk
+$ composer require wpfly/crypto
 
 #### 使用说明
 
