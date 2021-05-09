@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2021-04-23 22:24:39
- * @LastEditTime: 2021-05-09 01:43:44
+ * @LastEditTime: 2021-05-09 19:37:08
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /crypto/README.md
@@ -67,7 +67,7 @@ var_dump($num, $r1, $r2);
 
 <br>
 
-//AES加密、解密（AES-128-GCM模式）
+//AES加密、解密
 
 $crypto = new Crypto();
 

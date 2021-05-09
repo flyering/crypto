@@ -67,6 +67,9 @@ PK;
             'private_key_bits' => 2048,
         );
         $res = openssl_pkey_new($configargs);
+        if(!$res){
+            throw new \Exception('Failure to generate the key.');
+        }
         openssl_pkey_export($res, $privKey, empty($passPhrase)?null:$passPhrase);
         $details = openssl_pkey_get_details($res);
         return [
@@ -423,19 +426,9 @@ PK;
         $hmac = substr($c, 0, $hmaclen);
         $iv = substr($c, $hmaclen, $ivlen);
         $ciphertext_raw = substr($c, $ivlen + $hmaclen);
-        if(function_exists('hash_equals'))
+        if (strcmp($hmac, hash_hmac('sha1', $iv . $ciphertext_raw, $key, true)) != 0)
         {
-            if (!hash_equals($hmac, hash_hmac('sha1', $iv . $ciphertext_raw, $key, true)))
-            {
-                throw new \Exception('Ciphertext is modified.');
-            }            
-        }
-        else
-        {
-            if (bin2hex($hmac) != hash_hmac('sha1', $iv . $ciphertext_raw, $key, false))
-            {
-                throw new \Exception('Ciphertext is modified.');
-            }
+            throw new \Exception('Ciphertext is modified.');
         }
         return openssl_decrypt($ciphertext_raw, $cipher, $key, OPENSSL_RAW_DATA, $iv);
     }
