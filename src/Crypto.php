@@ -397,11 +397,12 @@ PK;
      */
     public function aesEncrypt($plaintext, $key)
     {
-        $cipher = "aes-128-gcm";
+        $cipher = "aes-128-cbc";
         $ivlen = openssl_cipher_iv_length($cipher);
         $iv = openssl_random_pseudo_bytes($ivlen);
-        $ciphertext_raw = openssl_encrypt($plaintext, $cipher, $key, OPENSSL_RAW_DATA, $iv, $tag);
-        return base64_encode($iv.$tag.$ciphertext_raw);
+        $ciphertext_raw = openssl_encrypt($plaintext, $cipher, $key, OPENSSL_RAW_DATA, $iv);
+        $hmac = hash_hmac('sha1', $iv . $ciphertext_raw, $key, true);
+        return base64_encode($hmac . $iv . $ciphertext_raw);
     }
     /**
      * @description: 
@@ -411,18 +412,32 @@ PK;
      */
     public function aesDecrypt($ciphertext, $key)
     {
-        $cipher = "aes-128-gcm";
-        $ivlen = openssl_cipher_iv_length($cipher);
-        $taglen = 16;        
+        $cipher = "aes-128-cbc";
+        $ivlen = openssl_cipher_iv_length($cipher);  
         $c = base64_decode($ciphertext);
-        if(strlen($c) < $ivlen + $taglen)
+        $hmaclen = 20;
+        if(strlen($c) < $hmaclen + $ivlen)
         {
-            throw new \Exception('Ciphertext is not long enough.');
+            throw new \Exception('Ciphertext is cut.');
         }
-        $iv = substr($c, 0, $ivlen);
-        $tag = substr($c, $ivlen, $taglen);
-        $ciphertext_raw = substr($c, $ivlen + $taglen);
-        return openssl_decrypt($ciphertext_raw, $cipher, $key, OPENSSL_RAW_DATA, $iv, $tag);
+        $hmac = substr($c, 0, $hmaclen);
+        $iv = substr($c, $hmaclen, $ivlen);
+        $ciphertext_raw = substr($c, $ivlen + $hmaclen);
+        if(function_exists('hash_equals'))
+        {
+            if (!hash_equals($hmac, hash_hmac('sha1', $iv . $ciphertext_raw, $key, true)))
+            {
+                throw new \Exception('Ciphertext is modified.');
+            }            
+        }
+        else
+        {
+            if (bin2hex($hmac) != hash_hmac('sha1', $iv . $ciphertext_raw, $key, false))
+            {
+                throw new \Exception('Ciphertext is modified.');
+            }
+        }
+        return openssl_decrypt($ciphertext_raw, $cipher, $key, OPENSSL_RAW_DATA, $iv);
     }
     /**************** AES加密/解密 - 结束 ****************/
 }
