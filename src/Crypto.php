@@ -312,6 +312,11 @@ PK;
         }
         return $​decrypted;
     }
+    /**
+     * @description: 
+     * @param {*} $data
+     * @return {*}
+     */
     public function privSign($data)
     {
         if (!is_string($data)) {
