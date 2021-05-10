@@ -128,6 +128,10 @@ PK;
      */
     public function setPublicKey($publicKey)
     {
+        if(empty($publicKey))
+        {
+            throw new \Exception('Parameter $publicKey cannot be empty.');
+        }
         $this->publicKey = $publicKey;
         unset($this->pubKeyRes);
         $this->getPublicKey();
@@ -140,6 +144,10 @@ PK;
      */
     public function setPrivateKey($privateKey, $passPhrase = null)
     {
+        if(empty($privateKey))
+        {
+            throw new \Exception('Parameter $privateKey cannot be empty.');
+        }
         $this->privateKey = $privateKey;
         $this->passPhrase = $passPhrase;
         unset($this->privKeyRes);
@@ -419,7 +427,7 @@ PK;
         $ivlen = openssl_cipher_iv_length($cipher);  
         $c = base64_decode($ciphertext);
         $hmaclen = 20;
-        if(strlen($c) < $hmaclen + $ivlen)
+        if(strlen($c) <= $hmaclen + $ivlen)
         {
             throw new \Exception('Ciphertext is cut.');
         }

@@ -77,7 +77,7 @@ function useCase5()
 {
     $crypto = new Crypto();
 
-    //由于私钥中包含公钥，所以设置私钥后，私钥加密(签名)/公钥解密/公钥加密(保密传输)/私钥解密均可调用。
+    //由于私钥中包含公钥，所以设置私钥后，私钥加密(签名)/公钥解密、公钥加密(保密传输)/私钥解密均可调用。
     $crypto->setPrivateKey('-----BEGIN ENCRYPTED PRIVATE KEY-----
 MIIFDjBABgkqhkiG9w0BBQ0wMzAbBgkqhkiG9w0BBQwwDgQITMP90bqVGf8CAggA
 MBQGCCqGSIb3DQMHBAjXFimOAT0HIwSCBMgzQOTaGJTjSsIEcMKQ5h3nsSSBBQ7m
@@ -125,7 +125,7 @@ function useCase6()
 {
     $crypto = new Crypto();
 
-    //只设置公钥，所以只能调用公钥加密/解密，如果此时调用私钥加密/解密，会使用自带私钥，此时加密/解密不对应，。
+    //只设置公钥，所以只能调用公钥加密/解密，如果此时调用私钥加密/解密，会使用默认的自带私钥，此时加密与解密不对应，。
     $crypto->setPublicKey('-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAy/w5nN+wVEccKKZo+IlB
 uwzX23fYZcKGTSl9yToq1WlaQmR0Fmvgk2bpav2oJ7AWhnG94l2ZPUlASGk+8Q7l
