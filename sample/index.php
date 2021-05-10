@@ -5,17 +5,7 @@ use wpfly\Crypto;
 
 function useCase1()
 {
-    $crypto = new Crypto();
-    $num = '12';
-    $key = '639';
-    $r1 = $crypto->numberEncrypt($num, $key, 10);
-    $r2 = $crypto->numberDecrypt($r1, $key);
-    var_dump($num, $r1, $r2);
-}
-
-function useCase2()
-{
-    //自带公钥私钥，以便“开箱即用”去试验，但实际使用中，请一定一定重新设置密钥后再加密！
+    //自带公钥私钥，以便“开箱即用”去试验。实际中使用，请【一定】【一定】【一定】重新设置密钥后再加密（参考用例6）！
     $crypto = new Crypto();
 
     $s = '我真是个天才！';
@@ -29,18 +19,19 @@ function useCase2()
     var_dump($s, $d1, $d2, $d3, $d4);
 }
 
-function useCase3()
+function useCase2()
 {
     $crypto = new Crypto();
     $crypto->setConfig([        
         'digest_alg' => 'sha256', 
         'private_key_type' => OPENSSL_KEYTYPE_RSA,
         'private_key_bits' => 2048,
+        //'config' => 'C:\\PHP\\extras\\openssl.conf', //Windows下生成密钥失败，尝试设置openssl.conf的正确路径
     ]);
     var_dump($crypto->generateKey('password1'));
 }
 
-function useCase4()
+function useCase3()
 {
     $crypto = new Crypto();
     $pk = <<<PK
@@ -78,7 +69,7 @@ PK;
     var_dump($crypto->extractPubKey($pk, 'password2'));
 }
 
-function useCase5()
+function useCase4()
 {
     $crypto = new Crypto();
 
@@ -126,7 +117,7 @@ XM8=
 }
 
 
-function useCase6()
+function useCase5()
 {
     $crypto = new Crypto();
 
@@ -150,12 +141,12 @@ cwIDAQAB
     var_dump($e, $s, $d1, $d2);
 }
 
-
-function useCase7()
+function useCase6()
 {
     $crypto = new Crypto();
 
     $fileName = $crypto->generateKeyToFile('./', 'password4');
+    //注意保证文件的读取权限
     $crypto->setPublicKeyFromFile($fileName['public']);
     $crypto->setPrivateKeyFromFile($fileName['private'], 'password4');
 
@@ -168,6 +159,16 @@ function useCase7()
     $d4 = $crypto->privDecrypt($d3);
 
     var_dump($s, $d1, $d2, $d3, $d4);
+}
+
+function useCase7()
+{
+    $crypto = new Crypto();
+    $num = '12';
+    $key = '639';
+    $r1 = $crypto->numberEncrypt($num, $key, 10);
+    $r2 = $crypto->numberDecrypt($r1, $key);
+    var_dump($num, $r1, $r2);
 }
 
 function useCase8()
