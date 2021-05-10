@@ -187,7 +187,7 @@ function useCase9()
 {
     $crypto = new Crypto();
     
-    $s = '我真是个天才！gfhjghjghjghjghjghjghjghjghj';
+    $s = '我真是个天才！';
 
     $d1 = $crypto->privSign($s);
 
