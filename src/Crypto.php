@@ -312,6 +312,21 @@ PK;
         }
         return $​decrypted;
     }
+    public function privSign($data)
+    {
+        if (!is_string($data)) {
+            throw new \Exception('Parameter $data must be a string.');
+        }
+        if(!function_exists('openssl_sign'))
+        {
+            throw new \Exception('openssl functions are not available.');
+        }
+        $result = openssl_sign($data, $signature, $this->getPrivateKey(), OPENSSL_ALGO_SHA1);
+        if (!$result) {
+            throw new \Exception('Sign failed.');
+        }
+        return base64_encode($signature . $data);
+    }
     /**************** RSA加密/解密 - 结束 ****************/
 
     /**************** 数字加密/解密 - 开始 ****************/
@@ -417,14 +432,14 @@ PK;
      * @param {*} $key
      * @return {*}
      */
-    public function aesEncrypt($plaintext, $key)
+    public function aesEncrypt($plaintext, $key, $raw = false)
     {
         $cipher = "aes-128-cbc";
         $ivlen = openssl_cipher_iv_length($cipher);
         $iv = openssl_random_pseudo_bytes($ivlen);
         $ciphertext_raw = openssl_encrypt($plaintext, $cipher, $key, OPENSSL_RAW_DATA, $iv);
         $hmac = hash_hmac('sha1', $iv . $ciphertext_raw, $key, true);
-        return base64_encode($hmac . $iv . $ciphertext_raw);
+        return $raw ? ($hmac . $iv . $ciphertext_raw) : base64_encode($hmac . $iv . $ciphertext_raw);
     }
     /**
      * @description: 
@@ -432,11 +447,11 @@ PK;
      * @param {*} $key
      * @return {*}
      */
-    public function aesDecrypt($ciphertext, $key)
+    public function aesDecrypt($ciphertext, $key, $raw = false)
     {
         $cipher = "aes-128-cbc";
         $ivlen = openssl_cipher_iv_length($cipher);  
-        $c = base64_decode($ciphertext);
+        $c = $raw ? $ciphertext : base64_decode($ciphertext);
         $hmaclen = 20;
         if(strlen($c) <= $hmaclen + $ivlen)
         {

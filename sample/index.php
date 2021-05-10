@@ -183,6 +183,17 @@ function useCase8()
     var_dump($s, $d1, $d2);
 }
 
+function useCase9()
+{
+    $crypto = new Crypto();
+    
+    $s = '我真是个天才！gfhjghjghjghjghjghjghjghjghj';
+
+    $d1 = $crypto->privSign($s);
+
+    var_dump($s, $d1);
+}
+
 ob_start();
 try{
     echo "用例1：\r\n";
@@ -208,6 +219,9 @@ try{
     echo "\r\n";
     echo "用例8：\r\n";
     useCase8();
+    echo "\r\n";
+    echo "用例9：\r\n";
+    useCase9();
     echo "\r\n";
 }catch(Exception $e)
 {
