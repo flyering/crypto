@@ -1,7 +1,7 @@
 {
     "name": "wpfly/crypto",
     "description": "常用加密解密库",
-    "keywords": ["rsa", "diffusion", "number", "id"],
+    "keywords": ["rsa", "diffusion", "number", "id", "aes", "encrypt", "decrypt", "加密", "解密", "扩散", "对称", "非对称", "整数加密", "数字加密", "id加密"],
     "homepage": "https://www.wpfly.cn/",
     "type": "library",
     "require": {
