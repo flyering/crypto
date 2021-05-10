@@ -5,6 +5,11 @@ namespace wpfly;
 class Crypto
 {    
     /**************** RSA加密/解密 - 开始 ****************/
+    private $config = [        
+        'digest_alg' => 'sha256', 
+        'private_key_type' => OPENSSL_KEYTYPE_RSA,
+        'private_key_bits' => 2048,
+    ];
     private $passPhrase = null;
     private $privateKey = <<<PK
 -----BEGIN PRIVATE KEY-----
@@ -52,6 +57,17 @@ PK;
 
     /**
      * @description: 
+     * @param {*} $config
+     * @return {*}
+     */
+    public function setConfig($config)
+    {
+        if(is_array($config)) {
+            $this->config = array_merge($this->config, $config);
+        }
+    }
+    /**
+     * @description: 
      * @param {*} $passPhrase
      * @return {*}
      */
@@ -61,12 +77,7 @@ PK;
         {
             throw new \Exception('openssl functions are not available.');
         }
-        $configargs = array(
-            'digest_alg' => 'sha256', 
-            'private_key_type' => OPENSSL_KEYTYPE_RSA,
-            'private_key_bits' => 2048,
-        );
-        $res = openssl_pkey_new($configargs);
+        $res = openssl_pkey_new($this->config);
         if(!$res){
             throw new \Exception('Failure to generate the key.');
         }

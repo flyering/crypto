@@ -32,6 +32,11 @@ function useCase2()
 function useCase3()
 {
     $crypto = new Crypto();
+    $crypto->setConfig([        
+        'digest_alg' => 'sha256', 
+        'private_key_type' => OPENSSL_KEYTYPE_RSA,
+        'private_key_bits' => 2048,
+    ]);
     var_dump($crypto->generateKey('password1'));
 }
 
