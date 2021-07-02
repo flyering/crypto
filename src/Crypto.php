@@ -3,10 +3,10 @@
 namespace wpfly;
 
 class Crypto
-{    
+{
     /**************** RSA加密/解密 - 开始 ****************/
-    private $config = [        
-        'digest_alg' => 'sha256', 
+    private $config = [
+        'digest_alg' => 'sha256',
         'private_key_type' => OPENSSL_KEYTYPE_RSA,
         'private_key_bits' => 2048,
     ];
@@ -56,32 +56,31 @@ PK;
     private $pubKeyRes = null;
 
     /**
-     * @description: 
+     * @description:
      * @param {*} $config
      * @return {*}
      */
     public function setConfig($config)
     {
-        if(is_array($config)) {
+        if (is_array($config)) {
             $this->config = array_merge($this->config, $config);
         }
     }
     /**
-     * @description: 
+     * @description:
      * @param {*} $passPhrase
      * @return {*}
      */
     public function generateKey($passPhrase = null)
     {
-        if(!function_exists('openssl_pkey_new'))
-        {
+        if (!function_exists('openssl_pkey_new')) {
             throw new \Exception('openssl functions are not available.');
         }
         $res = openssl_pkey_new($this->config);
-        if(!$res){
+        if (!$res) {
             throw new \Exception('Failure to generate the key.');
         }
-        openssl_pkey_export($res, $privKey, empty($passPhrase)?null:$passPhrase);
+        openssl_pkey_export($res, $privKey, empty($passPhrase) ? null : $passPhrase);
         $details = openssl_pkey_get_details($res);
         return [
             'private' => $privKey,
@@ -89,7 +88,7 @@ PK;
         ];
     }
     /**
-     * @description: 
+     * @description:
      * @param {*} $filePath
      * @param {*} $passPhrase
      * @return {*}
@@ -97,8 +96,7 @@ PK;
     public function generateKeyToFile($filePath = '.', $passPhrase = null)
     {
         $filePath = rtrim(rtrim($filePath, '/'), '\\');
-        if(!is_dir($filePath))
-        {
+        if (!is_dir($filePath)) {
             throw new \Exception('Parameter $filePath is not a valid folder.');
         }
         $key = $this->generateKey($passPhrase);
@@ -114,15 +112,14 @@ PK;
         ];
     }
     /**
-     * @description: 
+     * @description:
      * @param {*} $privateKey
      * @param {*} $passPhrase
      * @return {*}
      */
     public function extractPubKey($privateKey, $passPhrase = null)
     {
-        if(!function_exists('openssl_pkey_get_private'))
-        {
+        if (!function_exists('openssl_pkey_get_private')) {
             throw new \Exception('openssl functions are not available.');
         }
         $privRes = openssl_pkey_get_private($privateKey, $passPhrase);
@@ -133,14 +130,13 @@ PK;
         return $details['key'];
     }
     /**
-     * @description: 
+     * @description:
      * @param {*} $publicKey
      * @return {*}
      */
     public function setPublicKey($publicKey)
     {
-        if(empty($publicKey))
-        {
+        if (empty($publicKey)) {
             throw new \Exception('Parameter $publicKey cannot be empty.');
         }
         $this->publicKey = $publicKey;
@@ -148,15 +144,14 @@ PK;
         $this->getPublicKey();
     }
     /**
-     * @description: 
+     * @description:
      * @param {*} $privateKey
      * @param {*} $passPhrase
      * @return {*}
      */
     public function setPrivateKey($privateKey, $passPhrase = null)
     {
-        if(empty($privateKey))
-        {
+        if (empty($privateKey)) {
             throw new \Exception('Parameter $privateKey cannot be empty.');
         }
         $this->privateKey = $privateKey;
@@ -166,43 +161,39 @@ PK;
         $this->setPublicKey($this->extractPubKey($privateKey, $passPhrase));
     }
     /**
-     * @description: 
+     * @description:
      * @param {*} $fileName
      * @return {*}
      */
     public function setPublicKeyFromFile($fileName)
     {
-        if(!is_file($fileName))
-        {
+        if (!is_file($fileName)) {
             throw new \Exception('Public key file not found.');
         }
         $this->setPublicKey(file_get_contents($fileName));
     }
     /**
-     * @description: 
+     * @description:
      * @param {*} $fileName
      * @param {*} $passPhrase
      * @return {*}
      */
     public function setPrivateKeyFromFile($fileName, $passPhrase = null)
-    {        
-        if(!is_file($fileName))
-        {
+    {
+        if (!is_file($fileName)) {
             throw new \Exception('Private key file not found.');
         }
         $this->setPrivateKey(file_get_contents($fileName), $passPhrase);
     }
     /**
-     * @description: 
+     * @description:
      * @param {*}
      * @return {*}
      */
     private function getPublicKey()
     {
-        if(empty($this->pubKeyRes))
-        {
-            if(!function_exists('openssl_pkey_get_public'))
-            {
+        if (empty($this->pubKeyRes)) {
+            if (!function_exists('openssl_pkey_get_public')) {
                 throw new \Exception('openssl functions are not available.');
             }
             $this->pubKeyRes = openssl_pkey_get_public($this->publicKey);
@@ -213,16 +204,14 @@ PK;
         return $this->pubKeyRes;
     }
     /**
-     * @description: 
+     * @description:
      * @param {*}
      * @return {*}
      */
     private function getPrivateKey()
     {
-        if(empty($this->privKeyRes))
-        {
-            if(!function_exists('openssl_pkey_get_private'))
-            {
+        if (empty($this->privKeyRes)) {
+            if (!function_exists('openssl_pkey_get_private')) {
                 throw new \Exception('openssl functions are not available.');
             }
             $this->privKeyRes = openssl_pkey_get_private($this->privateKey, $this->passPhrase);
@@ -233,7 +222,7 @@ PK;
         return $this->privKeyRes;
     }
     /**
-     * @description: 
+     * @description:
      * @param {*} $data
      * @return {*}
      */
@@ -242,8 +231,7 @@ PK;
         if (!is_string($data)) {
             throw new \Exception('Parameter $data must be a string.');
         }
-        if(!function_exists('openssl_private_encrypt'))
-        {
+        if (!function_exists('openssl_private_encrypt')) {
             throw new \Exception('openssl functions are not available.');
         }
         $result = openssl_private_encrypt($data, $encrypted, $this->getPrivateKey());
@@ -253,7 +241,7 @@ PK;
         return base64_encode($encrypted);
     }
     /**
-     * @description: 
+     * @description:
      * @param {*} $data
      * @return {*}
      */
@@ -262,8 +250,7 @@ PK;
         if (!is_string($data)) {
             throw new \Exception('Parameter $data must be a string.');
         }
-        if(!function_exists('openssl_public_decrypt'))
-        {
+        if (!function_exists('openssl_public_decrypt')) {
             throw new \Exception('openssl functions are not available.');
         }
         $result = openssl_public_decrypt(base64_decode($data), $​decrypted, $this->getPublicKey());
@@ -273,7 +260,7 @@ PK;
         return $​decrypted;
     }
     /**
-     * @description: 
+     * @description:
      * @param {*} $data
      * @return {*}
      */
@@ -282,8 +269,7 @@ PK;
         if (!is_string($data)) {
             throw new \Exception('Parameter $data must be a string.');
         }
-        if(!function_exists('openssl_public_encrypt'))
-        {
+        if (!function_exists('openssl_public_encrypt')) {
             throw new \Exception('openssl functions are not available.');
         }
         $result = openssl_public_encrypt($data, $encrypted, $this->getPublicKey());
@@ -293,7 +279,7 @@ PK;
         return base64_encode($encrypted);
     }
     /**
-     * @description: 
+     * @description:
      * @param {*} $data
      * @return {*}
      */
@@ -302,8 +288,7 @@ PK;
         if (!is_string($data)) {
             throw new \Exception('Parameter $data must be a string.');
         }
-        if(!function_exists('openssl_private_decrypt'))
-        {
+        if (!function_exists('openssl_private_decrypt')) {
             throw new \Exception('openssl functions are not available.');
         }
         $result = openssl_private_decrypt(base64_decode($data), $​decrypted, $this->getPrivateKey());
@@ -313,7 +298,7 @@ PK;
         return $​decrypted;
     }
     /**
-     * @description: 
+     * @description:
      * @param {*} $data
      * @return {*}
      */
@@ -322,8 +307,7 @@ PK;
         if (!is_string($data)) {
             throw new \Exception('Parameter $data must be a string.');
         }
-        if(!function_exists('openssl_sign'))
-        {
+        if (!function_exists('openssl_sign')) {
             throw new \Exception('openssl functions are not available.');
         }
         $result = openssl_sign($data, $signature, $this->getPrivateKey(), OPENSSL_ALGO_SHA1);
@@ -336,7 +320,7 @@ PK;
 
     /**************** 数字加密/解密 - 开始 ****************/
     /**
-     * @description: 
+     * @description:
      * @param {*} $m
      * @param {*} $p
      * @return {*}
@@ -357,7 +341,7 @@ PK;
         return $m;
     }
     /**
-     * @description: 
+     * @description:
      * @param {*} $d
      * @param {*} $p
      * @return {*}
@@ -378,7 +362,7 @@ PK;
         return $d;
     }
     /**
-     * @description: 
+     * @description:
      * @param {*} $num
      * @param {*} $key
      * @param {*} $fill
@@ -386,15 +370,9 @@ PK;
      */
     public function numberEncrypt($num, $key, $fill = 0)
     {
-        if (!is_string($num)) {
-            throw new \Exception('Parameter $num must be a string.');
-        }
-        if (!is_string($key)) {
-            throw new \Exception('Parameter $key must be a string.');
-        }
-        if (!is_int($fill)) {
-            throw new \Exception('Parameter $fill must be an integer.');
-        }
+        $num = (string) $num;
+        $key = (string) $key;
+        $fill = (int) $fill;
         if (preg_match("/^\d{2,}$/", $num) == 0) {
             throw new \Exception('Parameter $num must be a two or more Numbers.');
         }
@@ -407,19 +385,15 @@ PK;
         return join("", $this->numberDiffusion(str_split($num), str_split($key)));
     }
     /**
-     * @description: 
+     * @description:
      * @param {*} $num
      * @param {*} $key
      * @return {*}
      */
     public function numberDecrypt($num, $key)
     {
-        if (!is_string($num)) {
-            throw new \Exception('Parameter $num must be a string.');
-        }
-        if (!is_string($key)) {
-            throw new \Exception('Parameter $key must be a string.');
-        }
+        $num = (string) $num;
+        $key = (string) $key;
         if (preg_match("/^\d{2,}$/", $num) == 0) {
             throw new \Exception('Parameter $num must be a two or more Numbers.');
         }
@@ -432,7 +406,7 @@ PK;
 
     /**************** AES加密/解密 - 结束 ****************/
     /**
-     * @description: 
+     * @description:
      * @param {*} $plaintext
      * @param {*} $key
      * @return {*}
@@ -447,7 +421,7 @@ PK;
         return $raw ? ($hmac . $iv . $ciphertext_raw) : base64_encode($hmac . $iv . $ciphertext_raw);
     }
     /**
-     * @description: 
+     * @description:
      * @param {*} $ciphertext
      * @param {*} $key
      * @return {*}
@@ -455,18 +429,16 @@ PK;
     public function aesDecrypt($ciphertext, $key, $raw = false)
     {
         $cipher = "aes-128-cbc";
-        $ivlen = openssl_cipher_iv_length($cipher);  
+        $ivlen = openssl_cipher_iv_length($cipher);
         $c = $raw ? $ciphertext : base64_decode($ciphertext);
         $hmaclen = 20;
-        if(strlen($c) <= $hmaclen + $ivlen)
-        {
+        if (strlen($c) <= $hmaclen + $ivlen) {
             throw new \Exception('Ciphertext is cut.');
         }
         $hmac = substr($c, 0, $hmaclen);
         $iv = substr($c, $hmaclen, $ivlen);
         $ciphertext_raw = substr($c, $ivlen + $hmaclen);
-        if (strcmp($hmac, hash_hmac('sha1', $iv . $ciphertext_raw, $key, true)) != 0)
-        {
+        if (strcmp($hmac, hash_hmac('sha1', $iv . $ciphertext_raw, $key, true)) != 0) {
             throw new \Exception('Ciphertext is modified.');
         }
         return openssl_decrypt($ciphertext_raw, $cipher, $key, OPENSSL_RAW_DATA, $iv);
