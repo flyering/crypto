@@ -5,13 +5,13 @@ namespace wpfly;
 class Crypto
 {
     /**************** RSA加密/解密 - 开始 ****************/
-    private $config = [
+    protected $config = [
         'digest_alg' => 'sha256',
         'private_key_type' => OPENSSL_KEYTYPE_RSA,
         'private_key_bits' => 2048,
     ];
-    private $passPhrase = null;
-    private $privateKey = <<<PK
+    protected $passPhrase = null;
+    protected $privateKey = <<<PK
 -----BEGIN PRIVATE KEY-----
 MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCoY1q8bXlmDNH6
 M8rcCIzYhyZ622vk0dNtjjW3au3YuMMwuHpzstBxdrbdgiI6F/Hvsk1HNs07F09x
@@ -41,7 +41,7 @@ NncJ4hlEz4IVtsjS4+Dm8iuKJn6D+irNH/Taf6pOtUFtd+qRefm/JfRclSlk5gdN
 1Ks2i+WaZSkreYzu2nq39Q==
 -----END PRIVATE KEY-----
 PK;
-    private $publicKey = <<<PK
+    protected $publicKey = <<<PK
 -----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqGNavG15ZgzR+jPK3AiM
 2Icmettr5NHTbY41t2rt2LjDMLh6c7LQcXa23YIiOhfx77JNRzbNOxdPcR3gBod+
@@ -52,8 +52,8 @@ hb8tp24wF+1sxK0wdmqhAMMRs7xE7wKRPY7Tl2ozYjZOjvHr1Gqa1tDGz8KaLqNm
 pwIDAQAB
 -----END PUBLIC KEY-----
 PK;
-    private $privKeyRes = null;
-    private $pubKeyRes = null;
+    protected $privKeyRes = null;
+    protected $pubKeyRes = null;
 
     /**
      * @description:
@@ -190,7 +190,7 @@ PK;
      * @param {*}
      * @return {*}
      */
-    private function getPublicKey()
+    protected function getPublicKey()
     {
         if (empty($this->pubKeyRes)) {
             if (!function_exists('openssl_pkey_get_public')) {
@@ -208,7 +208,7 @@ PK;
      * @param {*}
      * @return {*}
      */
-    private function getPrivateKey()
+    protected function getPrivateKey()
     {
         if (empty($this->privKeyRes)) {
             if (!function_exists('openssl_pkey_get_private')) {
@@ -318,14 +318,15 @@ PK;
     }
     /**************** RSA加密/解密 - 结束 ****************/
 
-    /**************** 数字加密/解密 - 开始 ****************/
+    /**************** 扩散加密/解密 - 开始 ****************/
     /**
      * @description:
      * @param {*} $m
      * @param {*} $p
+     * @param {*} $o
      * @return {*}
      */
-    private function numberDiffusion($m, $p)
+    protected function diffusion($m, $p, $o = 10)
     {
         $mLen = count($m);
         $pLen = count($p);
@@ -335,8 +336,8 @@ PK;
             $mNext = ($i + 1) % $mLen;
             $mPrev = ($i - 1 + $mLen) % $mLen;
             $pCurrent = $i % $pLen;
-            $m[$mNext] = ($m[$mCurrent] + $m[$mNext] + $p[$pCurrent]) % 10;
-            $m[$mCurrent] = ($m[$mPrev] + $m[$mCurrent] + $p[$pCurrent]) % 10;
+            $m[$mNext] = ($m[$mCurrent] + $m[$mNext] + $p[$pCurrent]) % $o;
+            $m[$mCurrent] = ($m[$mPrev] + $m[$mCurrent] + $p[$pCurrent]) % $o;
         }
         return $m;
     }
@@ -344,9 +345,10 @@ PK;
      * @description:
      * @param {*} $d
      * @param {*} $p
+     * @param {*} $o
      * @return {*}
      */
-    private function numberRecovery($d, $p)
+    protected function recovery($d, $p, $o = 10)
     {
         $dLen = count($d);
         $pLen = count($p);
@@ -356,8 +358,8 @@ PK;
             $dNext = ($i + 1) % $dLen;
             $dPrev = ($i - 1 + $dLen) % $dLen;
             $pCurrent = $i % $pLen;
-            $d[$dCurrent] = ($d[$dCurrent] - $d[$dPrev] - $p[$pCurrent] + 20) % 10;
-            $d[$dNext] = ($d[$dNext] - $d[$dCurrent] - $p[$pCurrent] + 20) % 10;
+            $d[$dCurrent] = ($d[$dCurrent] - $d[$dPrev] - $p[$pCurrent] + 2 * $o) % $o;
+            $d[$dNext] = ($d[$dNext] - $d[$dCurrent] - $p[$pCurrent] + 2 * $o) % $o;
         }
         return $d;
     }
@@ -382,7 +384,7 @@ PK;
         if ($fill > 0 && strlen($num) < $fill) {
             $num = sprintf("%0{$fill}s", $num);
         }
-        return join("", $this->numberDiffusion(str_split($num), str_split($key)));
+        return join("", $this->diffusion(str_split($num), str_split($key)));
     }
     /**
      * @description:
@@ -400,9 +402,50 @@ PK;
         if (preg_match("/^\d{2,}$/", $key) == 0) {
             throw new \Exception('Parameter $key must be a two or more Numbers.');
         }
-        return join("", $this->numberRecovery(str_split($num), str_split($key)));
+        return join("", $this->recovery(str_split($num), str_split($key)));
     }
-    /**************** 数字加密/解密 - 结束 ****************/
+    /**
+     * @description:
+     * @param {*} $bytes
+     * @param {*} $key
+     * @param {*} $raw
+     * @return {*}
+     */
+    public function byteEncrypt($bytes, $key, $raw = true)
+    {
+        $bytes = (string) $bytes;
+        $key = (string) $key;
+        if (empty($bytes)) {
+            throw new \Exception('Parameter $bytes cannot be empty.');
+        }
+        if (empty($key)) {
+            throw new \Exception('Parameter $key cannot be empty.');
+        }
+        $resultArray = $this->diffusion(array_map('hexdec', str_split(bin2hex($bytes))), array_map('hexdec', str_split(bin2hex($key))), 16);
+        $result = hex2bin(join("", array_map('dechex', $resultArray)));
+        return $raw ? $result : base64_encode($result);
+    }
+    /**
+     * @description:
+     * @param {*} $bytes
+     * @param {*} $key
+     * @param {*} $raw
+     * @return {*}
+     */
+    public function byteDecrypt($bytes, $key, $raw = true)
+    {
+        $bytes = (string) $bytes;
+        $key = (string) $key;
+        if (empty($bytes)) {
+            throw new \Exception('Parameter $bytes cannot be empty.');
+        }
+        if (empty($key)) {
+            throw new \Exception('Parameter $key cannot be empty.');
+        }
+        $resultArray = $this->recovery(array_map('hexdec', str_split(bin2hex($raw ? $bytes : base64_decode($bytes)))), array_map('hexdec', str_split(bin2hex($key))), 16);
+        return hex2bin(join("", array_map('dechex', $resultArray)));
+    }
+    /**************** 扩散加密/解密 - 结束 ****************/
 
     /**************** AES加密/解密 - 结束 ****************/
     /**
@@ -441,7 +484,11 @@ PK;
         if (strcmp($hmac, hash_hmac('sha1', $iv . $ciphertext_raw, $key, true)) != 0) {
             throw new \Exception('Ciphertext is modified.');
         }
-        return openssl_decrypt($ciphertext_raw, $cipher, $key, OPENSSL_RAW_DATA, $iv);
+        $result = openssl_decrypt($ciphertext_raw, $cipher, $key, OPENSSL_RAW_DATA, $iv);
+        if ($result === false) {
+            throw new \Exception('Decryption failed.');
+        }
+        return $result;
     }
     /**************** AES加密/解密 - 结束 ****************/
 }

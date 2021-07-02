@@ -40,7 +40,7 @@ $crypto = new Crypto();
 
 $num = '12';
 
-$key = '639';
+$key = 639;
 
 $r1 = $crypto->numberEncrypt($num, $key, 10);
 

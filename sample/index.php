@@ -22,8 +22,8 @@ function useCase1()
 function useCase2()
 {
     $crypto = new Crypto();
-    $crypto->setConfig([        
-        'digest_alg' => 'sha256', 
+    $crypto->setConfig([
+        'digest_alg' => 'sha256',
         'private_key_type' => OPENSSL_KEYTYPE_RSA,
         'private_key_bits' => 2048,
         //'config' => 'C:\\PHP\\extras\\openssl.conf', //Windows下生成密钥失败，尝试设置openssl.conf的正确路径
@@ -116,7 +116,6 @@ XM8=
     var_dump($s, $d1, $d2, $d3, $d4);
 }
 
-
 function useCase5()
 {
     $crypto = new Crypto();
@@ -164,8 +163,8 @@ function useCase6()
 function useCase7()
 {
     $crypto = new Crypto();
-    $num = 12;
-    $key = '639';
+    $num = '12';
+    $key = 639;
     $r1 = $crypto->numberEncrypt($num, $key, 10);
     $r2 = $crypto->numberDecrypt($r1, $key);
     var_dump($num, $r1, $r2);
@@ -186,7 +185,7 @@ function useCase8()
 function useCase9()
 {
     $crypto = new Crypto();
-    
+
     $s = '我真是个天才！';
 
     $d1 = $crypto->privSign($s);
@@ -194,8 +193,20 @@ function useCase9()
     var_dump($s, $d1);
 }
 
+function useCase10()
+{
+    $crypto = new Crypto();
+
+    $s = '哈哈';
+
+    $d1 = $crypto->byteEncrypt($s, 'password6');
+    $d2 = $crypto->byteDecrypt($d1, 'password6');
+
+    var_dump($s, $d1, $d2);
+}
+
 ob_start();
-try{
+try {
     echo "用例1：\r\n";
     useCase1();
     echo "\r\n";
@@ -223,8 +234,10 @@ try{
     echo "用例9：\r\n";
     useCase9();
     echo "\r\n";
-}catch(Exception $e)
-{
+    echo "用例10：\r\n";
+    useCase10();
+    echo "\r\n";
+} catch (Exception $e) {
     echo $e->getMessage();
 }
 $out = ob_get_clean();
@@ -232,5 +245,3 @@ $out = str_replace("\r\n", "<br/>", $out);
 $out = str_replace("\n", "<br/>", $out);
 header("Content-Type: text/html;charset=utf-8");
 echo $out;
-
-
