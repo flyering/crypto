@@ -197,46 +197,43 @@ function useCase10()
 {
     $crypto = new Crypto();
 
-    $s = '哈哈';
+    $s = '我真是个天才！';
 
     $d1 = $crypto->byteEncrypt($s, 'password6');
     $d2 = $crypto->byteDecrypt($d1, 'password6');
 
-    var_dump($s, $d1, $d2);
+    $d3 = $crypto->byteEncrypt($s, 'password6', false);
+    $d4 = $crypto->byteDecrypt($d3, 'password6', false);
+
+    var_dump($s, $d1, $d2, $d3, $d4);
+}
+
+function useCase11()
+{
+    $crypto = new Crypto();
+
+    $n = 66;
+
+    $d1 = $crypto->byteEncrypt(pack('N', $n), 'password7', false);
+    $d2 = unpack('N', $crypto->byteDecrypt($d1, 'password7', false));
+
+    $d3 = $crypto->byteEncrypt(pack('J', $n), 'password7', false);
+    $d4 = unpack('J', $crypto->byteDecrypt($d3, 'password7', false));
+
+    var_dump($n, $d1, $d2, $d3, $d4);
 }
 
 ob_start();
 try {
-    echo "用例1：\r\n";
-    useCase1();
-    echo "\r\n";
-    echo "用例2：\r\n";
-    useCase2();
-    echo "\r\n";
-    echo "用例3：\r\n";
-    useCase3();
-    echo "\r\n";
-    echo "用例4：\r\n";
-    useCase4();
-    echo "\r\n";
-    echo "用例5：\r\n";
-    useCase5();
-    echo "\r\n";
-    echo "用例6：\r\n";
-    useCase6();
-    echo "\r\n";
-    echo "用例7：\r\n";
-    useCase7();
-    echo "\r\n";
-    echo "用例8：\r\n";
-    useCase8();
-    echo "\r\n";
-    echo "用例9：\r\n";
-    useCase9();
-    echo "\r\n";
-    echo "用例10：\r\n";
-    useCase10();
-    echo "\r\n";
+    $funs = get_defined_functions();
+    foreach ($funs['user'] as $f) {
+        if (!preg_match("/^usecase(\d+)$/", $f, $m)) {
+            continue;
+        }
+        echo "用例{$m[1]}：\r\n\r\n";
+        $f();
+        echo "\r\n";
+    }
 } catch (Exception $e) {
     echo $e->getMessage();
 }

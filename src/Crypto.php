@@ -375,10 +375,10 @@ PK;
         $num = (string) $num;
         $key = (string) $key;
         $fill = (int) $fill;
-        if (preg_match("/^\d{2,}$/", $num) == 0) {
+        if (!preg_match("/^\d{2,}$/", $num)) {
             throw new \Exception('Parameter $num must be a two or more Numbers.');
         }
-        if (preg_match("/^\d{2,}$/", $key) == 0) {
+        if (!preg_match("/^\d{2,}$/", $key)) {
             throw new \Exception('Parameter $key must be a two or more Numbers.');
         }
         if ($fill > 0 && strlen($num) < $fill) {
@@ -392,15 +392,19 @@ PK;
      * @param {*} $key
      * @return {*}
      */
-    public function numberDecrypt($num, $key)
+    public function numberDecrypt($num, $key, $fill = 0)
     {
         $num = (string) $num;
         $key = (string) $key;
-        if (preg_match("/^\d{2,}$/", $num) == 0) {
+        $fill = (int) $fill;
+        if (!preg_match("/^\d{2,}$/", $num)) {
             throw new \Exception('Parameter $num must be a two or more Numbers.');
         }
-        if (preg_match("/^\d{2,}$/", $key) == 0) {
+        if (!preg_match("/^\d{2,}$/", $key)) {
             throw new \Exception('Parameter $key must be a two or more Numbers.');
+        }
+        if ($fill > 0 && strlen($num) < $fill) {
+            $num = sprintf("%0{$fill}s", $num);
         }
         return join("", $this->recovery(str_split($num), str_split($key)));
     }
