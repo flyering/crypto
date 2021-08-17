@@ -55,10 +55,13 @@ PK;
     protected $privKeyRes = null;
     protected $pubKeyRes = null;
 
+    protected $numberMap = [7, 3, 5, 8, 4, 0, 2, 1, 9, 6];
+    protected $byteMap = [13, 10, 1, 7, 2, 14, 6, 9, 4, 0, 12, 8, 11, 3, 5, 15];
+
     /**
-     * @description:
-     * @param {*} $config
-     * @return {*}
+     * 配置OpenSSL。
+     * @param array $config OpenSSL配置选项。
+     * @return void
      */
     public function setConfig($config)
     {
@@ -67,14 +70,14 @@ PK;
         }
     }
     /**
-     * @description:
-     * @param {*} $passPhrase
-     * @return {*}
+     * 生成RSA的公钥和私钥。
+     * @param string $passPhrase 私钥密码。
+     * @return array 公钥和私钥。
      */
     public function generateKey($passPhrase = null)
     {
         if (!function_exists('openssl_pkey_new')) {
-            throw new \Exception('openssl functions are not available.');
+            throw new \Exception('OpenSSL functions are not available.');
         }
         $res = openssl_pkey_new($this->config);
         if (!$res) {
@@ -88,10 +91,10 @@ PK;
         ];
     }
     /**
-     * @description:
-     * @param {*} $filePath
-     * @param {*} $passPhrase
-     * @return {*}
+     * 生成RSA的公钥和私钥并保存到文件。
+     * @param string $filePath 要保存到的目录，文件名自动生成，可通过返回值获取到。
+     * @param string $passPhrase 私钥密码。
+     * @return array 公钥与私钥的文件名。
      */
     public function generateKeyToFile($filePath = '.', $passPhrase = null)
     {
@@ -112,15 +115,15 @@ PK;
         ];
     }
     /**
-     * @description:
-     * @param {*} $privateKey
-     * @param {*} $passPhrase
-     * @return {*}
+     * 从私钥中解析出公钥。
+     * @param string $privateKey 私钥。
+     * @param string $passPhrase 私钥密码。
+     * @return string 公钥。
      */
     public function extractPubKey($privateKey, $passPhrase = null)
     {
         if (!function_exists('openssl_pkey_get_private')) {
-            throw new \Exception('openssl functions are not available.');
+            throw new \Exception('OpenSSL functions are not available.');
         }
         $privRes = openssl_pkey_get_private($privateKey, $passPhrase);
         if (!is_resource($privRes)) {
@@ -130,9 +133,9 @@ PK;
         return $details['key'];
     }
     /**
-     * @description:
-     * @param {*} $publicKey
-     * @return {*}
+     * 设置加密/解密使用的公钥。
+     * @param string $publicKey 公钥。
+     * @return void
      */
     public function setPublicKey($publicKey)
     {
@@ -144,10 +147,10 @@ PK;
         $this->getPublicKey();
     }
     /**
-     * @description:
-     * @param {*} $privateKey
-     * @param {*} $passPhrase
-     * @return {*}
+     * 设置加密/解密使用的私钥。
+     * @param string $privateKey 私钥。
+     * @param string $passPhrase 私钥密码。
+     * @return void
      */
     public function setPrivateKey($privateKey, $passPhrase = null)
     {
@@ -161,9 +164,9 @@ PK;
         $this->setPublicKey($this->extractPubKey($privateKey, $passPhrase));
     }
     /**
-     * @description:
-     * @param {*} $fileName
-     * @return {*}
+     * 从文件加载加密/解密使用的公钥。
+     * @param string $fileName 公钥文件名，需指定路径。
+     * @return void
      */
     public function setPublicKeyFromFile($fileName)
     {
@@ -173,10 +176,10 @@ PK;
         $this->setPublicKey(file_get_contents($fileName));
     }
     /**
-     * @description:
-     * @param {*} $fileName
-     * @param {*} $passPhrase
-     * @return {*}
+     * 从文件加载加密/解密使用的私钥。
+     * @param string $fileName 私钥文件名，需指定路径。
+     * @param string $passPhrase 私钥密码。
+     * @return void
      */
     public function setPrivateKeyFromFile($fileName, $passPhrase = null)
     {
@@ -186,15 +189,14 @@ PK;
         $this->setPrivateKey(file_get_contents($fileName), $passPhrase);
     }
     /**
-     * @description:
-     * @param {*}
-     * @return {*}
+     * 处理公钥，使成为可使用的公钥资源。
+     * @return resource 公钥资源。
      */
     protected function getPublicKey()
     {
         if (empty($this->pubKeyRes)) {
             if (!function_exists('openssl_pkey_get_public')) {
-                throw new \Exception('openssl functions are not available.');
+                throw new \Exception('OpenSSL functions are not available.');
             }
             $this->pubKeyRes = openssl_pkey_get_public($this->publicKey);
             if (!is_resource($this->pubKeyRes)) {
@@ -204,15 +206,14 @@ PK;
         return $this->pubKeyRes;
     }
     /**
-     * @description:
-     * @param {*}
-     * @return {*}
+     * 处理私钥，使成为可使用的私钥资源。
+     * @return resource 私钥资源。
      */
     protected function getPrivateKey()
     {
         if (empty($this->privKeyRes)) {
             if (!function_exists('openssl_pkey_get_private')) {
-                throw new \Exception('openssl functions are not available.');
+                throw new \Exception('OpenSSL functions are not available.');
             }
             $this->privKeyRes = openssl_pkey_get_private($this->privateKey, $this->passPhrase);
             if (!is_resource($this->privKeyRes)) {
@@ -222,9 +223,9 @@ PK;
         return $this->privKeyRes;
     }
     /**
-     * @description:
-     * @param {*} $data
-     * @return {*}
+     * 私钥加密。
+     * @param string $data 要加密的数据。
+     * @return string 加密后的数据。
      */
     public function privEncrypt($data)
     {
@@ -232,7 +233,7 @@ PK;
             throw new \Exception('Parameter $data must be a string.');
         }
         if (!function_exists('openssl_private_encrypt')) {
-            throw new \Exception('openssl functions are not available.');
+            throw new \Exception('OpenSSL functions are not available.');
         }
         $result = openssl_private_encrypt($data, $encrypted, $this->getPrivateKey());
         if (!$result) {
@@ -241,9 +242,9 @@ PK;
         return base64_encode($encrypted);
     }
     /**
-     * @description:
-     * @param {*} $data
-     * @return {*}
+     * 公钥解密。
+     * @param string $data 要解密的数据。
+     * @return string 解密后的数据。
      */
     public function pubDecrypt($data)
     {
@@ -251,7 +252,7 @@ PK;
             throw new \Exception('Parameter $data must be a string.');
         }
         if (!function_exists('openssl_public_decrypt')) {
-            throw new \Exception('openssl functions are not available.');
+            throw new \Exception('OpenSSL functions are not available.');
         }
         $result = openssl_public_decrypt(base64_decode($data), $​decrypted, $this->getPublicKey());
         if (!$result) {
@@ -260,9 +261,9 @@ PK;
         return $​decrypted;
     }
     /**
-     * @description:
-     * @param {*} $data
-     * @return {*}
+     * 公钥加密。
+     * @param string $data 要加密的数据。
+     * @return string 加密后的数据。
      */
     public function pubEncrypt($data)
     {
@@ -270,7 +271,7 @@ PK;
             throw new \Exception('Parameter $data must be a string.');
         }
         if (!function_exists('openssl_public_encrypt')) {
-            throw new \Exception('openssl functions are not available.');
+            throw new \Exception('OpenSSL functions are not available.');
         }
         $result = openssl_public_encrypt($data, $encrypted, $this->getPublicKey());
         if (!$result) {
@@ -279,9 +280,9 @@ PK;
         return base64_encode($encrypted);
     }
     /**
-     * @description:
-     * @param {*} $data
-     * @return {*}
+     * 私钥解密。
+     * @param string $data 要解密的数据。
+     * @return string 解密后的数据。
      */
     public function privDecrypt($data)
     {
@@ -289,7 +290,7 @@ PK;
             throw new \Exception('Parameter $data must be a string.');
         }
         if (!function_exists('openssl_private_decrypt')) {
-            throw new \Exception('openssl functions are not available.');
+            throw new \Exception('OpenSSL functions are not available.');
         }
         $result = openssl_private_decrypt(base64_decode($data), $​decrypted, $this->getPrivateKey());
         if (!$result) {
@@ -298,9 +299,9 @@ PK;
         return $​decrypted;
     }
     /**
-     * @description:
-     * @param {*} $data
-     * @return {*}
+     * 私钥签名。
+     * @param string $data 要签名的数据。
+     * @return string 签名后的数据。
      */
     public function privSign($data)
     {
@@ -308,7 +309,7 @@ PK;
             throw new \Exception('Parameter $data must be a string.');
         }
         if (!function_exists('openssl_sign')) {
-            throw new \Exception('openssl functions are not available.');
+            throw new \Exception('OpenSSL functions are not available.');
         }
         $result = openssl_sign($data, $signature, $this->getPrivateKey(), OPENSSL_ALGO_SHA1);
         if (!$result) {
@@ -320,143 +321,247 @@ PK;
 
     /**************** 扩散加密/解密 - 开始 ****************/
     /**
-     * @description:
-     * @param {*} $m
-     * @param {*} $p
-     * @param {*} $o
-     * @return {*}
+     * 生成数字加密/解密的S盒子。
+     * @return string S盒子。
      */
-    protected function diffusion($m, $p, $o = 10)
+    public function generateNumberMap()
     {
-        $mLen = count($m);
-        $pLen = count($p);
-        $round = $mLen > $pLen ? $mLen : $pLen;
+        $s = range(0, 9);
+        shuffle($s);
+        return "[" . implode(',', $s) . "]";
+    }
+    /**
+     * 设置数字加密/解密使用的S盒子。
+     * @param array $map S盒子。
+     * @return void
+     */
+    public function setNumberMap($map)
+    {
+        $temp = $map;
+        if (!is_array($temp)) {
+            throw new \Exception('Parameter $map should be an array.');
+        }
+        sort($temp);
+        if ($temp != range(0, 9)) {
+            throw new \Exception('Parameter $map should be a permutation of 0 to 9.');
+        }
+        $this->numberMap = $map;
+    }
+    /**
+     * 数字加密。
+     * @param string|int $numStr 要加密的数字。
+     * @param string $key 密码，支持任意字符串。
+     * @param int $fill 填充长度，填充0到要加密的数字前，使数字长度不小于填充长度。
+     * @return string 加密后的数字字符串。
+     */
+    public function numberEncrypt($numStr, $key, $fill = 0)
+    {
+        $numStr = (string) $numStr;
+        $fill = (int) $fill;
+        if ($fill > 0 && strlen($numStr) < $fill) {
+            $numStr = sprintf("%0{$fill}s", $numStr);
+        }
+        if (!preg_match("/^\d{2,}$/", $numStr)) {
+            throw new \Exception('Parameter $numStr must be a two or more Numbers.');
+        }
+        $num = str_split($numStr);
+        $numLen = count($num);
+        //扩散轮数
+        $round = 0;
+        $x = $numLen - 1;
+        while ($x > 0) {
+            $round++;
+            $x = ($x >> 1);
+        }
+        //每次扩散使用不同密码，所以需要扩展密码：先对密码进行哈希计算，得到密码相关的随机16进制串，然后利用进制转换得到密码相关的随机数字串。
+        $extKeyLen = $numLen * $round;
+        $extKeyStr = '';
+        $y = 0;
+        do {
+            $aHex = str_split(md5($key . $y++), 8);
+            $aNum = array_map(function ($item) {
+                return substr(base_convert($item, 16, 10), 1);
+            }, $aHex);
+            $extKeyStr .= join('', $aNum);
+        } while (strlen($extKeyStr) < $extKeyLen);
+        $extKey = str_split(substr($extKeyStr, 0, $extKeyLen));
+        //扩散
+        $z = 0;
         for ($i = 0; $i < $round; $i++) {
-            $mCurrent = $i % $mLen;
-            $mNext = ($i + 1) % $mLen;
-            $mPrev = ($i - 1 + $mLen) % $mLen;
-            $pCurrent = $i % $pLen;
-            $m[$mNext] = ($m[$mCurrent] + $m[$mNext] + $p[$pCurrent]) % $o;
-            $m[$mCurrent] = ($m[$mPrev] + $m[$mCurrent] + $p[$pCurrent]) % $o;
+            for ($j = 0; $j < $numLen; $j++) {
+                $dist = ($j + (1 << $i)) % $numLen;
+                $num[$dist] = $this->numberMap[($num[$j] + $num[$dist] + $extKey[$z++]) % 10];
+            }
         }
-        return $m;
+        return join('', $num);
     }
     /**
-     * @description:
-     * @param {*} $d
-     * @param {*} $p
-     * @param {*} $o
-     * @return {*}
+     * 数字解密。
+     * @param string|int $numStr 要解密的数字。
+     * @param string $key 密码，支持任意字符串。
+     * @param int $fill 填充长度，填充0到要解密的数字前，使数字长度不小于填充长度。
+     * @return string 解密后的数字字符串。
      */
-    protected function recovery($d, $p, $o = 10)
+    public function numberDecrypt($numStr, $key, $fill = 0)
     {
-        $dLen = count($d);
-        $pLen = count($p);
-        $round = $dLen > $pLen ? $dLen : $pLen;
+        $numStr = (string) $numStr;
+        $fill = (int) $fill;
+        if ($fill > 0 && strlen($numStr) < $fill) {
+            $numStr = sprintf("%0{$fill}s", $numStr);
+        }
+        if (!preg_match("/^\d{2,}$/", $numStr)) {
+            throw new \Exception('Parameter $numStr must be a two or more Numbers.');
+        }
+        $num = str_split($numStr);
+        $numLen = count($num);
+        //扩散轮数
+        $round = 0;
+        $x = $numLen - 1;
+        while ($x > 0) {
+            $round++;
+            $x = ($x >> 1);
+        }
+        //扩展密码
+        $extKeyLen = $numLen * $round;
+        $extKeyStr = '';
+        $y = 0;
+        do {
+            $aHex = str_split(md5($key . $y++), 8);
+            $aNum = array_map(function ($item) {
+                return substr(base_convert($item, 16, 10), 1);
+            }, $aHex);
+            $extKeyStr .= join('', $aNum);
+        } while (strlen($extKeyStr) < $extKeyLen);
+        $extKey = str_split(substr($extKeyStr, 0, $extKeyLen));
+        //扩散还原
+        $flippedMap = array_flip($this->numberMap);
+        $z = $extKeyLen - 1;
         for ($i = $round - 1; $i >= 0; $i--) {
-            $dCurrent = $i % $dLen;
-            $dNext = ($i + 1) % $dLen;
-            $dPrev = ($i - 1 + $dLen) % $dLen;
-            $pCurrent = $i % $pLen;
-            $d[$dCurrent] = ($d[$dCurrent] - $d[$dPrev] - $p[$pCurrent] + 2 * $o) % $o;
-            $d[$dNext] = ($d[$dNext] - $d[$dCurrent] - $p[$pCurrent] + 2 * $o) % $o;
+            for ($j = $numLen - 1; $j >= 0; $j--) {
+                $dist = ($j + (1 << $i)) % $numLen;
+                $num[$dist] = (20 + $flippedMap[$num[$dist]] - $num[$j] - $extKey[$z--]) % 10;
+            }
         }
-        return $d;
+        return join("", $num);
     }
     /**
-     * @description:
-     * @param {*} $num
-     * @param {*} $key
-     * @param {*} $fill
-     * @return {*}
+     * 生成字节加密/解密的S盒子。
+     * @return string S盒子。
      */
-    public function numberEncrypt($num, $key, $fill = 0)
+    public function generateByteMap()
     {
-        $num = (string) $num;
-        $key = (string) $key;
-        $fill = (int) $fill;
-        if (!preg_match("/^\d{2,}$/", $num)) {
-            throw new \Exception('Parameter $num must be a two or more Numbers.');
-        }
-        if (!preg_match("/^\d{2,}$/", $key)) {
-            throw new \Exception('Parameter $key must be a two or more Numbers.');
-        }
-        if ($fill > 0 && strlen($num) < $fill) {
-            $num = sprintf("%0{$fill}s", $num);
-        }
-        return join("", $this->diffusion(str_split($num), str_split($key)));
+        $s = range(0, 15);
+        shuffle($s);
+        return "[" . implode(',', $s) . "]";
     }
     /**
-     * @description:
-     * @param {*} $num
-     * @param {*} $key
-     * @return {*}
+     * 设置字节加密/解密使用的S盒子。
+     * @param array $map S盒子。
+     * @return void
      */
-    public function numberDecrypt($num, $key, $fill = 0)
+    public function setByteMap($map)
     {
-        $num = (string) $num;
-        $key = (string) $key;
-        $fill = (int) $fill;
-        if (!preg_match("/^\d{2,}$/", $num)) {
-            throw new \Exception('Parameter $num must be a two or more Numbers.');
+        $temp = $map;
+        if (!is_array($temp)) {
+            throw new \Exception('Parameter $map should be an array.');
         }
-        if (!preg_match("/^\d{2,}$/", $key)) {
-            throw new \Exception('Parameter $key must be a two or more Numbers.');
+        sort($temp);
+        if ($temp != range(0, 15)) {
+            throw new \Exception('Parameter $map should be a permutation of 0 to 15.');
         }
-        if ($fill > 0 && strlen($num) < $fill) {
-            $num = sprintf("%0{$fill}s", $num);
-        }
-        return join("", $this->recovery(str_split($num), str_split($key)));
+        $this->byteMap = $map;
     }
     /**
-     * @description:
-     * @param {*} $bytes
-     * @param {*} $key
-     * @param {*} $raw
-     * @return {*}
+     * 字节加密。
+     * @param string $bytes 要加密的数据
+     * @param string $key 密码，支持任意字符串。
+     * @param bool $raw 加密后的数据格式，，true（默认）：原始数据，false：base64字符串
+     * @return string 加密后的数据。
      */
     public function byteEncrypt($bytes, $key, $raw = true)
     {
         $bytes = (string) $bytes;
-        $key = (string) $key;
         if (empty($bytes)) {
             throw new \Exception('Parameter $bytes cannot be empty.');
         }
-        if (empty($key)) {
-            throw new \Exception('Parameter $key cannot be empty.');
+        $byteArray = array_map('hexdec', str_split(bin2hex($bytes)));
+        $byteLen = count($byteArray);
+        //扩散轮数
+        $round = 0;
+        $x = $byteLen - 1;
+        while ($x > 0) {
+            $round++;
+            $x = ($x >> 1);
         }
-        $resultArray = $this->diffusion(array_map('hexdec', str_split(bin2hex($bytes))), array_map('hexdec', str_split(bin2hex($key))), 16);
-        $result = hex2bin(join("", array_map('dechex', $resultArray)));
+        //每次扩散使用不同密码，所以需要扩展密码：先对密码进行哈希计算，得到密码相关的随机字节。
+        $extKeyLen = $byteLen * $round;
+        $extKeyStr = '';
+        $y = 0;
+        do {
+            $extKeyStr .= md5($key . $y++);
+        } while (strlen($extKeyStr) < $extKeyLen);
+        $extKey = array_map('hexdec', str_split(substr($extKeyStr, 0, $extKeyLen)));
+        //扩散
+        $z = 0;
+        for ($i = 0; $i < $round; $i++) {
+            for ($j = 0; $j < $byteLen; $j++) {
+                $dist = ($j + (1 << $i)) % $byteLen;
+                $byteArray[$dist] = $this->byteMap[($byteArray[$j] + $byteArray[$dist] + $extKey[$z++]) % 16];
+            }
+        }
+        $result = hex2bin(join("", array_map('dechex', $byteArray)));
         return $raw ? $result : base64_encode($result);
     }
     /**
-     * @description:
-     * @param {*} $bytes
-     * @param {*} $key
-     * @param {*} $raw
-     * @return {*}
+     * 字节解密。
+     * @param string $bytes 要解密的数据
+     * @param string $key 密码，支持任意字符串。
+     * @param bool $raw 解密前的数据格式，true（默认）：原始数据，false：base64字符串
+     * @return string 解密后的数据。
      */
     public function byteDecrypt($bytes, $key, $raw = true)
     {
         $bytes = (string) $bytes;
-        $key = (string) $key;
         if (empty($bytes)) {
             throw new \Exception('Parameter $bytes cannot be empty.');
         }
-        if (empty($key)) {
-            throw new \Exception('Parameter $key cannot be empty.');
+        $byteArray = array_map('hexdec', str_split(bin2hex($raw ? $bytes : base64_decode($bytes))));
+        $byteLen = count($byteArray);
+        //扩散轮数
+        $round = 0;
+        $x = $byteLen - 1;
+        while ($x > 0) {
+            $round++;
+            $x = ($x >> 1);
         }
-        $resultArray = $this->recovery(array_map('hexdec', str_split(bin2hex($raw ? $bytes : base64_decode($bytes)))), array_map('hexdec', str_split(bin2hex($key))), 16);
-        return hex2bin(join("", array_map('dechex', $resultArray)));
+        //扩展密码
+        $extKeyLen = $byteLen * $round;
+        $extKeyStr = '';
+        $y = 0;
+        do {
+            $extKeyStr .= md5($key . $y++);
+        } while (strlen($extKeyStr) < $extKeyLen);
+        $extKey = array_map('hexdec', str_split(substr($extKeyStr, 0, $extKeyLen)));
+        //扩散还原
+        $flippedMap = array_flip($this->byteMap);
+        $z = $extKeyLen - 1;
+        for ($i = $round - 1; $i >= 0; $i--) {
+            for ($j = $byteLen - 1; $j >= 0; $j--) {
+                $dist = ($j + (1 << $i)) % $byteLen;
+                $byteArray[$dist] = (32 + $flippedMap[$byteArray[$dist]] - $byteArray[$j] - $extKey[$z--]) % 16;
+            }
+        }
+        return hex2bin(join("", array_map('dechex', $byteArray)));
     }
     /**************** 扩散加密/解密 - 结束 ****************/
 
     /**************** AES加密/解密 - 开始 ****************/
     /**
-     * @description:
-     * @param {*} $plaintext
-     * @param {*} $key
-     * @return {*}
+     * AES加密。
+     * @param string $plaintext 要加密的数据。
+     * @param string $key 密码。
+     * @param bool $raw 加密后的数据格式，，true：原始数据，false（默认）：base64字符串
+     * @return string 加密后的数据。
      */
     public function aesEncrypt($plaintext, $key, $raw = false)
     {
@@ -468,10 +573,11 @@ PK;
         return $raw ? ($hmac . $iv . $ciphertext_raw) : base64_encode($hmac . $iv . $ciphertext_raw);
     }
     /**
-     * @description:
-     * @param {*} $ciphertext
-     * @param {*} $key
-     * @return {*}
+     * AES解密。
+     * @param string $ciphertext 要解密的数据。
+     * @param string $key 密码。
+     * @param bool $raw 解密前的数据格式，true：原始数据，false（默认）：base64字符串
+     * @return string 解密后的数据。
      */
     public function aesDecrypt($ciphertext, $key, $raw = false)
     {

@@ -164,7 +164,7 @@ function useCase7()
 {
     $crypto = new Crypto();
     $num = '12';
-    $key = 639;
+    $key = 644;
     $r1 = $crypto->numberEncrypt($num, $key, 10);
     $r2 = $crypto->numberDecrypt($r1, $key);
     var_dump($num, $r1, $r2);

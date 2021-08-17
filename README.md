@@ -40,7 +40,7 @@ $crypto = new Crypto();
 
 $num = '12';
 
-$key = 639;
+$key = 644;
 
 $r1 = $crypto->numberEncrypt($num, $key, 10);
 
@@ -54,7 +54,7 @@ var_dump($num, $r1, $r2);
 
 //string(2) "12"
 
-//string(10) "1759624947"
+//string(10) "0707549034"
 
 //string(10) "0000000012"
 
