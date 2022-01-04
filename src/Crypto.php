@@ -321,6 +321,20 @@ PK;
 
     /**************** 扩散加密/解密 - 开始 ****************/
     /**
+     * 计算扩散/还原轮数
+     * @return int 明文或密文长度。
+     */
+    protected function calculateRound($len)
+    {
+        $round = 0;
+        $x = $len - 1;
+        while ($x > 0) {
+            $round++;
+            $x = ($x >> 1);
+        }
+        return $round;
+    }
+    /**
      * 生成数字加密/解密的S盒子。
      * @return string S盒子。
      */
@@ -348,6 +362,25 @@ PK;
         $this->numberMap = $map;
     }
     /**
+     * 扩展数字加密/解密的KEY
+     * @return string 要扩展的密钥。
+     * @return int 扩展后的长度。
+     */
+    protected function extendNumKey($key, $len)
+    {
+        //通过多次哈希计算，然后利用进制转换，从而得到密码相关的且足够长的数字密码。
+        $extKey = '';
+        $i = 0;
+        do {
+            $aHex = str_split(md5($key . $i++), 8);
+            $aNum = array_map(function ($item) {
+                return substr(base_convert($item, 16, 10), 1);
+            }, $aHex);
+            $extKey .= join('', $aNum);
+        } while (strlen($extKey) < $len);
+        return str_split(substr($extKey, 0, $len));
+    }
+    /**
      * 数字加密。
      * @param string|int $numStr 要加密的数字。
      * @param string $key 密码，支持任意字符串。
@@ -367,24 +400,10 @@ PK;
         $num = str_split($numStr);
         $numLen = count($num);
         //扩散轮数
-        $round = 0;
-        $x = $numLen - 1;
-        while ($x > 0) {
-            $round++;
-            $x = ($x >> 1);
-        }
-        //每次扩散使用不同密码，所以需要扩展密码：先对密码进行哈希计算，得到密码相关的随机16进制串，然后利用进制转换得到密码相关的随机数字串。
-        $extKeyLen = $numLen * $round;
-        $extKeyStr = '';
-        $y = 0;
-        do {
-            $aHex = str_split(md5($key . $y++), 8);
-            $aNum = array_map(function ($item) {
-                return substr(base_convert($item, 16, 10), 1);
-            }, $aHex);
-            $extKeyStr .= join('', $aNum);
-        } while (strlen($extKeyStr) < $extKeyLen);
-        $extKey = str_split(substr($extKeyStr, 0, $extKeyLen));
+        $round = $this->calculateRound($numLen);
+        //每次扩散使用不同密码，所以需要扩展密码。
+        $extLen = $numLen * $round;
+        $extKey = $this->extendNumKey($key, $extLen);
         //扩散
         $z = 0;
         for ($i = 0; $i < $round; $i++) {
@@ -414,32 +433,18 @@ PK;
         }
         $num = str_split($numStr);
         $numLen = count($num);
-        //扩散轮数
-        $round = 0;
-        $x = $numLen - 1;
-        while ($x > 0) {
-            $round++;
-            $x = ($x >> 1);
-        }
+        //还原轮数
+        $round = $this->calculateRound($numLen);
         //扩展密码
-        $extKeyLen = $numLen * $round;
-        $extKeyStr = '';
-        $y = 0;
-        do {
-            $aHex = str_split(md5($key . $y++), 8);
-            $aNum = array_map(function ($item) {
-                return substr(base_convert($item, 16, 10), 1);
-            }, $aHex);
-            $extKeyStr .= join('', $aNum);
-        } while (strlen($extKeyStr) < $extKeyLen);
-        $extKey = str_split(substr($extKeyStr, 0, $extKeyLen));
-        //扩散还原
+        $extLen = $numLen * $round;
+        $extKey = $this->extendNumKey($key, $extLen);
+        //还原
         $flippedMap = array_flip($this->numberMap);
-        $z = $extKeyLen - 1;
+        $z = $extLen;
         for ($i = $round - 1; $i >= 0; $i--) {
             for ($j = $numLen - 1; $j >= 0; $j--) {
                 $dist = ($j + (1 << $i)) % $numLen;
-                $num[$dist] = (20 + $flippedMap[$num[$dist]] - $num[$j] - $extKey[$z--]) % 10;
+                $num[$dist] = (20 + $flippedMap[$num[$dist]] - $num[$j] - $extKey[--$z]) % 10;
             }
         }
         return join("", $num);
@@ -472,6 +477,21 @@ PK;
         $this->byteMap = $map;
     }
     /**
+     * 扩展字节加密/解密的KEY
+     * @return string 要扩展的密钥。
+     * @return int 扩展后的长度。
+     */
+    protected function extendByteKey($key, $len)
+    {
+        //通过多次哈希计算，从而得到密码相关的且足够长的字节密码。
+        $extKey = '';
+        $i = 0;
+        do {
+            $extKey .= md5($key . $i++);
+        } while (strlen($extKey) < $len);
+        return array_map('hexdec', str_split(substr($extKey, 0, $len)));
+    }
+    /**
      * 字节加密。
      * @param string $bytes 要加密的数据
      * @param string $key 密码，支持任意字符串。
@@ -487,20 +507,10 @@ PK;
         $byteArray = array_map('hexdec', str_split(bin2hex($bytes)));
         $byteLen = count($byteArray);
         //扩散轮数
-        $round = 0;
-        $x = $byteLen - 1;
-        while ($x > 0) {
-            $round++;
-            $x = ($x >> 1);
-        }
-        //每次扩散使用不同密码，所以需要扩展密码：先对密码进行哈希计算，得到密码相关的随机字节。
-        $extKeyLen = $byteLen * $round;
-        $extKeyStr = '';
-        $y = 0;
-        do {
-            $extKeyStr .= md5($key . $y++);
-        } while (strlen($extKeyStr) < $extKeyLen);
-        $extKey = array_map('hexdec', str_split(substr($extKeyStr, 0, $extKeyLen)));
+        $round = $this->calculateRound($byteLen);
+        //每次扩散使用不同密码，所以需要扩展密码。
+        $extLen = $byteLen * $round;
+        $extKey = $this->extendByteKey($key, $extLen);
         //扩散
         $z = 0;
         for ($i = 0; $i < $round; $i++) {
@@ -527,28 +537,18 @@ PK;
         }
         $byteArray = array_map('hexdec', str_split(bin2hex($raw ? $bytes : base64_decode($bytes))));
         $byteLen = count($byteArray);
-        //扩散轮数
-        $round = 0;
-        $x = $byteLen - 1;
-        while ($x > 0) {
-            $round++;
-            $x = ($x >> 1);
-        }
+        //还原轮数
+        $round = $this->calculateRound($byteLen);
         //扩展密码
-        $extKeyLen = $byteLen * $round;
-        $extKeyStr = '';
-        $y = 0;
-        do {
-            $extKeyStr .= md5($key . $y++);
-        } while (strlen($extKeyStr) < $extKeyLen);
-        $extKey = array_map('hexdec', str_split(substr($extKeyStr, 0, $extKeyLen)));
-        //扩散还原
+        $extLen = $byteLen * $round;
+        $extKey = $this->extendByteKey($key, $extLen);
+        //还原
         $flippedMap = array_flip($this->byteMap);
-        $z = $extKeyLen - 1;
+        $z = $extLen;
         for ($i = $round - 1; $i >= 0; $i--) {
             for ($j = $byteLen - 1; $j >= 0; $j--) {
                 $dist = ($j + (1 << $i)) % $byteLen;
-                $byteArray[$dist] = (32 + $flippedMap[$byteArray[$dist]] - $byteArray[$j] - $extKey[$z--]) % 16;
+                $byteArray[$dist] = (32 + $flippedMap[$byteArray[$dist]] - $byteArray[$j] - $extKey[--$z]) % 16;
             }
         }
         return hex2bin(join("", array_map('dechex', $byteArray)));
