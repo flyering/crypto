@@ -322,7 +322,8 @@ PK;
     /**************** 扩散加密/解密 - 开始 ****************/
     /**
      * 计算扩散/还原轮数
-     * @return int 明文或密文长度。
+     * @param int 明文或密文长度。
+     * @return int 计算结果。
      */
     protected function calculateRound($len)
     {
@@ -362,9 +363,10 @@ PK;
         $this->numberMap = $map;
     }
     /**
-     * 扩展数字加密/解密的KEY
-     * @return string 要扩展的密钥。
-     * @return int 扩展后的长度。
+     * 扩展数字加密/解密的密钥
+     * @param string 要扩展的密钥。
+     * @param int 扩展后的长度。
+     * @return array 扩展后的密钥。
      */
     protected function extendNumKey($key, $len)
     {
@@ -477,9 +479,10 @@ PK;
         $this->byteMap = $map;
     }
     /**
-     * 扩展字节加密/解密的KEY
-     * @return string 要扩展的密钥。
-     * @return int 扩展后的长度。
+     * 扩展字节加密/解密的密钥
+     * @param string 要扩展的密钥。
+     * @param int 扩展后的长度。
+     * @return array 扩展后的密钥。
      */
     protected function extendByteKey($key, $len)
     {
